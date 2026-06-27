@@ -1,0 +1,92 @@
+@import "tailwindcss";
+
+/*
+  Diary design tokens.
+  Light = premium Mac light mode (Notes/Reminders).
+  Dark = native Mac dark mode (Apple system materials).
+  Theme flips via prefers-color-scheme at the :root — no JS toggle in Phase 1.
+*/
+
+:root {
+  color-scheme: light;
+
+  /* surfaces — premium Mac light mode */
+  --paper: #ffffff;
+  --paper-raised: #fbfbfd;
+  --paper-subtle: #f5f5f7;
+
+  /* ink — Apple's primary label color is rgba(0,0,0,0.85) → ~#1d1d1f on white */
+  --ink: #1d1d1f;
+  --ink-soft: #6e6e73;
+  --ink-faint: #d2d2d7;
+
+  /* accent — purple */
+  --accent: #8b7dbe;
+  --accent-strong: #6b5e9e;
+  --accent-soft: #f0edf7;
+
+  /* dividers, hairlines */
+  --line: #e5e5ea;
+  --line-strong: #d1d1d6;
+
+  /* switch track — the only ornamented UI */
+  --track: #f3f4f6;
+
+  color: var(--ink);
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    /* surfaces — native macOS dark mode (not pure black — Apple uses #1e1e1e / #1c1c1e) */
+    --paper: #1e1e1e;
+    --paper-raised: #242426;
+    --paper-subtle: #2c2c2e;
+
+    /* ink — Apple's secondary label flips to ~#f5f5f7 / #e5e5e7 in dark */
+    --ink: #f5f5f7;
+    --ink-soft: #a1a1a6;
+    --ink-faint: #3a3a3c;
+
+    --accent: #a89bd9;
+    --accent-strong: #c4b9e8;
+    --accent-soft: #2a2540;
+
+    --line: #38383a;
+    --line-strong: #48484a;
+
+    --track: #3a3a3c;
+  }
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  background: transparent !important;
+  color: var(--ink);
+}
+
+body {
+  font-family: "Atkinson Hyperlegible", system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+::selection {
+  background-color: var(--accent-soft);
+  color: var(--ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}

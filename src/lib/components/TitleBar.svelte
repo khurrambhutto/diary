@@ -1,0 +1,150 @@
+<script lang="ts">
+  import { onMount } from "svelte";
+  import { getCurrentWindow } from "@tauri-apps/api/window";
+
+  // macOS puts traffic lights on the left; Windows/Linux get them on the right.
+  // Detect at runtime — checked once on mount.
+  let isMac = $state(false);
+
+  onMount(() => {
+    isMac =
+      typeof navigator !== "undefined" &&
+      /Mac|iPhone|iPad|iPod/i.test(navigator.platform);
+  });
+
+  async function minimize() {
+    await getCurrentWindow().minimize();
+  }
+
+  async function toggleMaximize() {
+    const w = getCurrentWindow();
+    if (await w.isMaximized()) {
+      await w.unmaximize();
+    } else {
+      await w.maximize();
+    }
+  }
+
+  async function close() {
+    await getCurrentWindow().close();
+  }
+</script>
+
+<div
+  class="titlebar"
+  data-tauri-drag-region
+  class:mac={isMac}
+  class:win={!isMac}
+>
+  {#if isMac}
+    <div class="lights" data-tauri-drag-region>
+      <button
+        type="button"
+        class="light close"
+        aria-label="Close"
+        onclick={close}
+      ></button>
+      <button
+        type="button"
+        class="light minimize"
+        aria-label="Minimize"
+        onclick={minimize}
+      ></button>
+      <button
+        type="button"
+        class="light maximize"
+        aria-label="Maximize"
+        onclick={toggleMaximize}
+      ></button>
+    </div>
+    <div class="spacer" data-tauri-drag-region></div>
+  {:else}
+    <div class="spacer" data-tauri-drag-region></div>
+    <div class="lights" data-tauri-drag-region>
+      <button
+        type="button"
+        class="light minimize"
+        aria-label="Minimize"
+        onclick={minimize}
+      ></button>
+      <button
+        type="button"
+        class="light maximize"
+        aria-label="Maximize"
+        onclick={toggleMaximize}
+      ></button>
+      <button
+        type="button"
+        class="light close"
+        aria-label="Close"
+        onclick={close}
+      ></button>
+    </div>
+  {/if}
+</div>
+
+<style>
+  .titlebar {
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    padding: 0 0.75rem;
+    flex-shrink: 0;
+  }
+  .titlebar.win {
+    flex-direction: row;
+  }
+
+  .spacer {
+    flex: 1;
+  }
+
+  .lights {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    -webkit-app-region: no-drag;
+  }
+
+  .light {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 9999px;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    background-color: var(--traffic-idle);
+    transition: background-color 120ms ease;
+  }
+
+  .light:hover {
+    background-color: var(--traffic-hover);
+  }
+
+  /* macOS symbols on hover; Windows shows mono dots */
+  .mac .light.close:hover    { background-color: #fe5f57; }
+  .mac .light.minimize:hover { background-color: #febc2e; }
+  .mac .light.maximize:hover { background-color: #28c840; }
+  .mac .light:hover::after {
+    color: rgba(0, 0, 0, 0.55);
+    font-size: 0.625rem;
+    line-height: 0.75rem;
+    font-weight: 700;
+    position: relative;
+    display: block;
+    text-align: center;
+  }
+  .mac .light.close:hover::after    { content: "×"; }
+  .mac .light.minimize:hover::after { content: "−"; }
+  .mac .light.maximize:hover::after  { content: "+"; }
+
+  /* Windows-style dots stay muted until hover */
+  .win .light.close:hover        { background-color: #e81123; }
+  .win .light.minimize:hover,
+  .win .light.maximize:hover     { background-color: var(--ink-soft); }
+
+  :root {
+    --traffic-idle: var(--ink-faint);
+    --traffic-hover: var(--ink-soft);
+  }
+</style>
