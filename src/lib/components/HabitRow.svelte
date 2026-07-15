@@ -92,11 +92,6 @@
     font-size: 11px;
     color: var(--ink-soft);
     margin-left: 0.25rem;
-    opacity: 0;
-    transition: opacity 150ms ease;
-  }
-  .row:hover .streak {
-    opacity: 1;
   }
   .delete {
     flex-shrink: 0;

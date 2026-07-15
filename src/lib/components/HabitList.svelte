@@ -20,15 +20,19 @@
   </div>
 
   <div class="list">
-    {#each list as habit (habit.id)}
-      <HabitRow
-        label={habit.label}
-        checked={isChecked(habit.id, dateKey)}
-        streak={habitStreak(habit.id)}
-        onToggle={() => void toggleCheck(habit.id, dateKey)}
-        onDelete={() => void deleteHabit(habit.id)}
-      />
-    {/each}
+    {#if list.length === 0}
+      <p class="empty">No habits yet</p>
+    {:else}
+      {#each list as habit (habit.id)}
+        <HabitRow
+          label={habit.label}
+          checked={isChecked(habit.id, dateKey)}
+          streak={habitStreak(habit.id)}
+          onToggle={() => void toggleCheck(habit.id, dateKey)}
+          onDelete={() => void deleteHabit(habit.id)}
+        />
+      {/each}
+    {/if}
   </div>
 
   <HabitAddForm />
@@ -58,5 +62,12 @@
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+  }
+  .empty {
+    margin: 0;
+    font-family: "Atkinson Hyperlegible", system-ui, sans-serif;
+    font-size: 13px;
+    color: var(--ink-soft);
+    font-style: italic;
   }
 </style>
