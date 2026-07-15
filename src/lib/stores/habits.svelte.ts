@@ -1,5 +1,5 @@
 import { load, type Store } from "@tauri-apps/plugin-store";
-import { format, previousDay, startOfDay } from "date-fns";
+import { format, startOfDay } from "date-fns";
 
 const STORE_PATH = ".diary-store.json";
 const HABITS_KEY = "habits";
@@ -73,12 +73,21 @@ export async function deleteHabit(id: string): Promise<void> {
 }
 
 /** Compute the current streak for a habit: consecutive days checked.
- *  Starts from yesterday and goes backwards; today is counted if already checked.
- *  Breaks at the first missed day (max 365 days back). */
+ *  Starts from yesterday and goes backwards; today is counted only if already checked.
+ *  Breaks at the first missed day (max 365 days back).
+ *  This way a user with a long streak sees it even before checking today. */
 export function habitStreak(habitId: string): number {
   const checks = state.checks[habitId] ?? {};
   let streak = 0;
   const cursor = startOfDay(new Date());
+  const today = format(cursor, "yyyy-MM-dd");
+
+  // count today only if already checked
+  if (checks[today] === true) {
+    streak++;
+  }
+  // always start backwards from yesterday
+  cursor.setDate(cursor.getDate() - 1);
 
   for (let i = 0; i < 365; i++) {
     const k = format(cursor, "yyyy-MM-dd");
