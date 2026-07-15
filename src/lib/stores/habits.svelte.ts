@@ -1,10 +1,5 @@
 import { load, type Store } from "@tauri-apps/plugin-store";
-
-/**
- * Habits store — definitions + per-day check states.
- * Lives in the same `.diary-store.json` file as the journal, under the
- * `habits` key. One concern per store file — this one only owns habits.
- */
+import { format, previousDay, startOfDay } from "date-fns";
 
 const STORE_PATH = ".diary-store.json";
 const HABITS_KEY = "habits";
@@ -12,7 +7,6 @@ const HABITS_KEY = "habits";
 export type HabitDef = { id: string; label: string; createdAt: string };
 export type HabitStoreShape = {
   habits: HabitDef[];
-  /** outer key = habitId, inner key = YYYY-MM-DD, value = checked? */
   checks: Record<string, Record<string, boolean>>;
 };
 
@@ -20,12 +14,15 @@ let store: Store | null = null;
 let state = $state<HabitStoreShape>({ habits: [], checks: {} });
 let hydrated = $state(false);
 
-/** Default habits seeded on first run (store empty). */
 const DEFAULT_HABITS: HabitDef[] = [
   { id: "study", label: "Study session", createdAt: new Date().toISOString() },
   { id: "gym", label: "Go to gym", createdAt: new Date().toISOString() },
   { id: "read", label: "Read 10 pages", createdAt: new Date().toISOString() },
 ];
+
+function dateKey(date: Date = new Date()): string {
+  return format(date, "yyyy-MM-dd");
+}
 
 export async function initHabitsStore(): Promise<void> {
   if (hydrated) return;
@@ -48,21 +45,18 @@ export function habits(): HabitDef[] {
   return state.habits;
 }
 
-/** Is the given habit checked on the given date key? */
 export function isChecked(habitId: string, dateKey: string): boolean {
   return state.checks[habitId]?.[dateKey] === true;
 }
 
-/** Toggle a habit's check state for a date key and persist. */
-export async function toggleCheck(habitId: string, dateKey: string): Promise<void> {
+export async function toggleCheck(habitId: string, dayKey: string): Promise<void> {
   const dayMap = state.checks[habitId] ?? {};
-  const next = !dayMap[dateKey];
-  dayMap[dateKey] = next;
+  const next = !dayMap[dayKey];
+  dayMap[dayKey] = next;
   state.checks[habitId] = dayMap;
   await store?.set(HABITS_KEY, state);
 }
 
-/** Add a new habit definition. */
 export async function addHabit(label: string): Promise<void> {
   const id = `h-${Date.now().toString(36)}`;
   state.habits = [
@@ -70,4 +64,31 @@ export async function addHabit(label: string): Promise<void> {
     { id, label: label.trim(), createdAt: new Date().toISOString() },
   ];
   await store?.set(HABITS_KEY, state);
+}
+
+export async function deleteHabit(id: string): Promise<void> {
+  state.habits = state.habits.filter((h) => h.id !== id);
+  delete state.checks[id];
+  await store?.set(HABITS_KEY, state);
+}
+
+/** Compute the current streak for a habit: consecutive days checked.
+ *  Starts from yesterday and goes backwards; today is counted if already checked.
+ *  Breaks at the first missed day (max 365 days back). */
+export function habitStreak(habitId: string): number {
+  const checks = state.checks[habitId] ?? {};
+  let streak = 0;
+  const cursor = startOfDay(new Date());
+
+  for (let i = 0; i < 365; i++) {
+    const k = format(cursor, "yyyy-MM-dd");
+    if (checks[k] === true) {
+      streak++;
+    } else {
+      break;
+    }
+    cursor.setDate(cursor.getDate() - 1);
+  }
+
+  return streak;
 }
