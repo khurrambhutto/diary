@@ -75,7 +75,7 @@
     flex-direction: column;
     background-color: var(--paper);
     color: var(--ink);
-    border-radius: 12px;
+    border-radius: 16px;
     overflow: hidden;
     box-shadow:
       0 0 0 1px var(--line),

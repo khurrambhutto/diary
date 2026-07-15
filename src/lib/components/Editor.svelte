@@ -21,6 +21,16 @@
   let view: EditorView | null = null;
   let saveTimer: ReturnType<typeof setTimeout> | null = null;
 
+  function flushSave(): void {
+    if (saveTimer) {
+      clearTimeout(saveTimer);
+      saveTimer = null;
+    }
+    if (!view) return;
+    const body = view.state.doc.toString();
+    void setEntry(dateKey, body);
+  }
+
   onMount(() => {
     view = new EditorView({
       state: EditorState.create({
@@ -30,6 +40,9 @@
           EditorView.updateListener.of((update) => {
             if (!update.docChanged) return;
             scheduleSave();
+          }),
+          EditorView.domEventHandlers({
+            blur: () => { flushSave(); },
           }),
         ],
       }),

@@ -71,7 +71,7 @@
   .date-head time {
     font-family: "Newsreader", Georgia, serif;
     font-style: italic;
-    font-size: 13px;
+    font-size: 16px;
     color: var(--ink-soft);
   }
   .editor-wrap {

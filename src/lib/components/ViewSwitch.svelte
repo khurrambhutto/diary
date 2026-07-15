@@ -30,7 +30,7 @@
     class:active={currentView() === "monthly"}
     onclick={() => pick("monthly")}
   >
-    Monthly
+    More
   </button>
 </div>
 
@@ -40,7 +40,6 @@
     width: 9rem;
     height: 2rem;
     border-radius: 9999px;
-    border: 1px solid var(--ink-faint);
     box-shadow: none;
     background: transparent;
     display: grid;
