@@ -6,6 +6,7 @@
     isChecked,
     toggleCheck,
     deleteHabit,
+    renameHabit,
     habitStreak,
   } from "$lib/stores/habits.svelte";
   import HabitRow from "./HabitRow.svelte";
@@ -37,6 +38,7 @@
             streak={habitStreak(habit.id)}
             onToggle={() => void toggleCheck(habit.id, dateKey)}
             onDelete={() => void deleteHabit(habit.id)}
+            onRename={(l) => void renameHabit(habit.id, l)}
           />
         </div>
       {/each}

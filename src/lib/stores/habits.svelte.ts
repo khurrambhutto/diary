@@ -1,5 +1,5 @@
 import { load, type Store } from "@tauri-apps/plugin-store";
-import { format, startOfDay } from "date-fns";
+import { format, startOfDay, addDays, subDays } from "date-fns";
 
 const STORE_PATH = ".diary-store.json";
 const HABITS_KEY = "habits";
@@ -45,8 +45,8 @@ export function habits(): HabitDef[] {
   return state.habits;
 }
 
-export function isChecked(habitId: string, dateKey: string): boolean {
-  return state.checks[habitId]?.[dateKey] === true;
+export function isChecked(habitId: string, key: string): boolean {
+  return state.checks[habitId]?.[key] === true;
 }
 
 export async function toggleCheck(habitId: string, dayKey: string): Promise<void> {
@@ -72,21 +72,23 @@ export async function deleteHabit(id: string): Promise<void> {
   await store?.set(HABITS_KEY, state);
 }
 
-/** Compute the current streak for a habit: consecutive days checked.
- *  Starts from yesterday and goes backwards; today is counted only if already checked.
- *  Breaks at the first missed day (max 365 days back).
- *  This way a user with a long streak sees it even before checking today. */
+export async function renameHabit(id: string, label: string): Promise<void> {
+  const trimmed = label.trim();
+  if (!trimmed) return;
+  state.habits = state.habits.map((h) => (h.id === id ? { ...h, label: trimmed } : h));
+  await store?.set(HABITS_KEY, state);
+}
+
+/** Compute the current streak for a habit: consecutive days checked. */
 export function habitStreak(habitId: string): number {
   const checks = state.checks[habitId] ?? {};
   let streak = 0;
   const cursor = startOfDay(new Date());
   const today = format(cursor, "yyyy-MM-dd");
 
-  // count today only if already checked
   if (checks[today] === true) {
     streak++;
   }
-  // always start backwards from yesterday
   cursor.setDate(cursor.getDate() - 1);
 
   for (let i = 0; i < 365; i++) {
@@ -100,4 +102,82 @@ export function habitStreak(habitId: string): number {
   }
 
   return streak;
+}
+
+/** Best streak for a habit over the last year. */
+export function habitBestStreak(habitId: string): number {
+  const checks = state.checks[habitId] ?? {};
+  let current = 0;
+  let best = 0;
+  const cursor = startOfDay(new Date());
+  const end = addDays(cursor, 1);
+
+  for (let i = 0; i < 365; i++) {
+    const d = subDays(end, i);
+    const k = format(d, "yyyy-MM-dd");
+    if (checks[k] === true) {
+      current++;
+      if (current > best) best = current;
+    } else {
+      current = 0;
+    }
+  }
+
+  return best;
+}
+
+/** Total number of days this habit was checked. */
+export function habitCheckCount(habitId: string): number {
+  const checks = state.checks[habitId] ?? {};
+  return Object.values(checks).filter(Boolean).length;
+}
+
+/** Completion rate (0..1) over the last `sinceDays` days, excluding days before createdAt. */
+export function habitCompletionRate(habitId: string, sinceDays = 30): number {
+  const habit = state.habits.find((h) => h.id === habitId);
+  if (!habit) return 0;
+  const created = format(new Date(habit.createdAt), "yyyy-MM-dd");
+  const checks = state.checks[habitId] ?? {};
+  let checked = 0;
+  let total = 0;
+  const today = startOfDay(new Date());
+
+  for (let i = 0; i < sinceDays; i++) {
+    const d = subDays(today, i);
+    const k = format(d, "yyyy-MM-dd");
+    if (k < created) continue;
+    total++;
+    if (checks[k] === true) checked++;
+  }
+
+  return total === 0 ? 0 : checked / total;
+}
+
+/** For a specific habit, return an array of { dateKey, checked } for a range. */
+export function habitChecksForRange(
+  habitId: string,
+  startDate: Date,
+  endDate: Date
+): { dateKey: string; checked: boolean }[] {
+  const checks = state.checks[habitId] ?? {};
+  const result: { dateKey: string; checked: boolean }[] = [];
+  const cursor = startOfDay(new Date(startDate));
+
+  while (cursor <= endDate) {
+    const k = format(cursor, "yyyy-MM-dd");
+    result.push({ dateKey: k, checked: checks[k] === true });
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  return result;
+}
+
+/** For a given day, count how many habits were checked and total habits. */
+export function allChecksForDate(dayKey: string): { checked: number; total: number } {
+  let checked = 0;
+  let total = state.habits.length;
+  for (const h of state.habits) {
+    if (state.checks[h.id]?.[dayKey] === true) checked++;
+  }
+  return { checked, total };
 }

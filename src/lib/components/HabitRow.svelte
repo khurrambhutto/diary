@@ -1,5 +1,7 @@
 <script lang="ts">
   import Check from "lucide-svelte/icons/check";
+  import MoreHorizontal from "lucide-svelte/icons/more-horizontal";
+  import HabitMenu from "./HabitMenu.svelte";
 
   let {
     label,
@@ -7,13 +9,62 @@
     streak,
     onToggle,
     onDelete,
+    onRename,
   }: {
     label: string;
     checked: boolean;
     streak: number;
     onToggle: () => void;
     onDelete: () => void;
+    onRename: (label: string) => void;
   } = $props();
+
+  let menuOpen = $state(false);
+  let editing = $state(false);
+  let draft = $state("");
+  let inputEl: HTMLInputElement | undefined = $state();
+
+  function openMenu() {
+    menuOpen = true;
+  }
+
+  function closeMenu() {
+    menuOpen = false;
+  }
+
+  function startRename() {
+    draft = label;
+    editing = true;
+  }
+
+  function commitRename() {
+    const trimmed = draft.trim();
+    if (trimmed && trimmed !== label) {
+      onRename(trimmed);
+    }
+    editing = false;
+  }
+
+  function cancelRename() {
+    editing = false;
+  }
+
+  function handleRenameKeydown(e: KeyboardEvent) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      commitRename();
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      cancelRename();
+    }
+  }
+
+  $effect(() => {
+    if (editing && inputEl) {
+      inputEl.focus();
+      inputEl.select();
+    }
+  });
 </script>
 
 <label class="row">
@@ -23,15 +74,39 @@
     {/if}
   </div>
   <input type="checkbox" checked={checked} onchange={onToggle} />
-  <span class="label">{label}</span>
+  {#if editing}
+    <input
+      type="text"
+      class="edit-input"
+      bind:value={draft}
+      bind:this={inputEl}
+      onblur={commitRename}
+      onkeydown={handleRenameKeydown}
+      aria-label="Rename habit"
+    />
+  {:else}
+    <span class="label">{label}</span>
+  {/if}
   {#if streak > 0}
     <span class="streak" title="Streak">{streak}&thinsp;🔥</span>
   {/if}
-  <button type="button" class="delete" aria-label="Delete habit" onclick={onDelete}>
-    <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor">
-      <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" />
-    </svg>
-  </button>
+  <div class="menu-anchor">
+    <button
+      type="button"
+      class="options-btn"
+      aria-label="Habit options"
+      onclick={openMenu}
+    >
+      <MoreHorizontal size={14} />
+    </button>
+    {#if menuOpen}
+      <HabitMenu
+        onRename={startRename}
+        onDelete={onDelete}
+        onClose={closeMenu}
+      />
+    {/if}
+  </div>
 </label>
 
 <style>
@@ -49,7 +124,7 @@
   .row:hover {
     background-color: var(--paper-subtle);
   }
-  input {
+  input[type="checkbox"] {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -92,6 +167,23 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+  .edit-input {
+    margin-left: 0.625rem;
+    flex: 1;
+    border: none;
+    border-bottom: 1px solid var(--line);
+    padding: 0.125rem 0;
+    font-family: "Atkinson Hyperlegible", system-ui, sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--ink);
+    background: transparent;
+    outline: none;
+    min-width: 0;
+  }
+  .edit-input:focus {
+    border-color: var(--accent);
+  }
   .streak {
     flex-shrink: 0;
     font-family: "Atkinson Hyperlegible", system-ui, sans-serif;
@@ -99,7 +191,11 @@
     color: var(--ink-soft);
     margin-left: 0.25rem;
   }
-  .delete {
+  .menu-anchor {
+    position: relative;
+    flex-shrink: 0;
+  }
+  .options-btn {
     flex-shrink: 0;
     background: none;
     border: none;
@@ -117,14 +213,14 @@
     justify-content: center;
     border-radius: 4px;
   }
-  .row:hover .delete,
-  .row:focus-within .delete {
+  .row:hover .options-btn,
+  .row:focus-within .options-btn {
     opacity: 1;
     transform: translateX(0);
   }
-  .delete:hover {
-    color: #ef4444;
-    background-color: rgba(239, 68, 68, 0.08);
+  .options-btn:hover {
+    color: var(--accent);
+    background-color: var(--paper-subtle);
   }
   .row:focus-within .box {
     outline: none;
