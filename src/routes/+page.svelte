@@ -1,13 +1,13 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { format } from "date-fns";
   import Editor from "$lib/components/Editor.svelte";
   import HabitList from "$lib/components/HabitList.svelte";
   import TodoList from "$lib/components/TodoList.svelte";
+  import DateHeader from "$lib/components/DateHeader.svelte";
   import {
     initJournalStore,
     isJournalHydrated,
-    todayKey,
+    getEntry,
   } from "$lib/stores/journal.svelte";
   import {
     initHabitsStore,
@@ -17,10 +17,15 @@
     initTodosStore,
     isTodosHydrated,
   } from "$lib/stores/todos.svelte";
+  import {
+    initSelectedDate,
+    selectedKey,
+    selectDate,
+    selectToday,
+    isViewingToday,
+  } from "$lib/stores/selected-date.svelte";
 
   let ready = $state(false);
-  let key = $state(todayKey());
-  const dateLabel = format(new Date(), "EEEE, MMMM d");
 
   onMount(async () => {
     await Promise.all([
@@ -28,9 +33,13 @@
       initHabitsStore(),
       initTodosStore(),
     ]);
-    key = todayKey();
+    initSelectedDate();
     ready = true;
   });
+
+  const key = $derived(selectedKey());
+  const dateKey = $derived(selectedKey());
+  const readonly = $derived(!isViewingToday());
 
   const hydrated = $derived(
     isJournalHydrated() && isHabitsHydrated() && isTodosHydrated()
@@ -40,11 +49,15 @@
 {#if ready && hydrated}
   <div class="canvas">
     <section class="journal">
-      <header class="date-head">
-        <time datetime={key}>{dateLabel}</time>
-      </header>
+      <DateHeader
+        selectedKey={key}
+        isToday={isViewingToday()}
+        onPickDate={(k) => selectDate(k)}
+        onBackToToday={() => selectToday()}
+        hasEntry={(k) => getEntry(k).trim().length > 0}
+      />
       <div class="editor-wrap">
-        <Editor dateKey={key} />
+        <Editor {dateKey} {readonly} />
       </div>
     </section>
 
@@ -72,15 +85,6 @@
     min-width: 0;
     display: flex;
     flex-direction: column;
-  }
-  .date-head {
-    padding: 0.5rem 2.5rem 1rem 2.5rem;
-  }
-  .date-head time {
-    font-family: "Newsreader", Georgia, serif;
-    font-style: italic;
-    font-size: 16px;
-    color: var(--ink-soft);
   }
   .editor-wrap {
     flex: 1 1 auto;

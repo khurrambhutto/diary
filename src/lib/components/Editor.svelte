@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { EditorView, placeholder } from "@codemirror/view";
-  import { EditorState } from "@codemirror/state";
+  import { EditorState, Compartment } from "@codemirror/state";
   import { journalExtensions } from "$lib/editor/extensions";
   import { getEntry, setEntry } from "$lib/stores/journal.svelte";
 
@@ -15,13 +15,24 @@
    *  - store updates from elsewhere → dispatch only if doc differs
    */
 
-  let { dateKey = "" } = $props();
+  let {
+    dateKey = "",
+    readonly = false,
+  }: { dateKey?: string; readonly?: boolean } = $props();
 
   let host: HTMLDivElement;
   let view: EditorView | null = null;
   let saveTimer: ReturnType<typeof setTimeout> | null = null;
+  const readOnlyCompartment = new Compartment();
+
+  const ariaLabel = $derived(
+    readonly
+      ? `Read-only journal entry for ${dateKey}`
+      : `Journal entry for ${dateKey}`
+  );
 
   function flushSave(): void {
+    if (readonly) return;
     if (saveTimer) {
       clearTimeout(saveTimer);
       saveTimer = null;
@@ -37,9 +48,11 @@
         doc: getEntry(dateKey),
         extensions: [
           ...journalExtensions(),
+          readOnlyCompartment.of(EditorState.readOnly.of(readonly)),
           placeholder("Start writing today's entry…"),
           EditorView.updateListener.of((update) => {
             if (!update.docChanged) return;
+            if (readonly) return;
             scheduleSave();
           }),
           EditorView.domEventHandlers({
@@ -61,6 +74,7 @@
   });
 
   function scheduleSave(): void {
+    if (readonly) return;
     if (saveTimer) clearTimeout(saveTimer);
     saveTimer = setTimeout(() => {
       saveTimer = null;
@@ -74,6 +88,7 @@
   // place — only when it actually differs from what's on screen.
   $effect(() => {
     const key = dateKey;
+    const ro = readonly;
     if (!view) return;
     const stored = getEntry(key);
     const current = view.state.doc.toString();
@@ -86,10 +101,14 @@
         },
       });
     }
+    view.dispatch({
+      effects: readOnlyCompartment.reconfigure(EditorState.readOnly.of(ro)),
+    });
+    host.classList.toggle("readonly", ro);
   });
 </script>
 
-<div class="editor-host" bind:this={host}></div>
+<div class="editor-host" bind:this={host} aria-label={ariaLabel} role="textbox" aria-multiline="true" aria-readonly={readonly}></div>
 
 <style>
   .editor-host {
@@ -101,5 +120,8 @@
   }
   .editor-host :global(.cm-scroller) {
     height: 100%;
+  }
+  :global(.editor-host.readonly .cm-content) {
+    opacity: 0.92;
   }
 </style>
