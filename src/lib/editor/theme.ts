@@ -10,6 +10,12 @@ export const journalTheme = EditorView.theme({
     height: "100%",
     backgroundColor: "transparent",
     color: "var(--ink)",
+    outline: "none",
+  },
+  // Remove CodeMirror's default dotted focus outline.
+  "&.cm-focused": {
+    outline: "none",
+    boxShadow: "none",
   },
   ".cm-scroller": {
     fontFamily: "inherit",
@@ -35,4 +41,9 @@ export const journalTheme = EditorView.theme({
   },
   // Cursor line caret color.
   ".cm-cursor, .cm-dropCursor": { borderLeftColor: "var(--ink)" },
+  // Placeholder text for an empty page.
+  ".cm-placeholder": {
+    color: "var(--ink-faint)",
+    fontStyle: "italic",
+  },
 });

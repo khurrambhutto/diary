@@ -9,7 +9,14 @@ import { goto } from "$app/navigation";
 
 export type View = "today" | "monthly";
 
-let current = $state<View>("today");
+function initialView(): View {
+  if (typeof window !== "undefined") {
+    return window.location.pathname.startsWith("/monthly") ? "monthly" : "today";
+  }
+  return "today";
+}
+
+let current = $state<View>(initialView());
 
 export function currentView(): View {
   return current;

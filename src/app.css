@@ -32,6 +32,12 @@
   /* switch track — the only ornamented UI */
   --track: #f3f4f6;
 
+  /* window shadow — softer in light mode */
+  --window-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.06),
+    0 18px 60px rgba(0, 0, 0, 0.12),
+    0 4px 12px rgba(0, 0, 0, 0.08);
+
   color: var(--ink);
 
   font-synthesis: none;
@@ -63,6 +69,12 @@
     --line-strong: #48484a;
 
     --track: #3a3a3c;
+
+    /* window shadow — slightly more depth in dark mode */
+    --window-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.06),
+      0 18px 60px rgba(0, 0, 0, 0.35),
+      0 4px 12px rgba(0, 0, 0, 0.25);
   }
 }
 
@@ -86,7 +98,6 @@ body {
 }
 
 :focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-  border-radius: 4px;
+  outline: none;
+  box-shadow: 0 0 0 2px var(--accent);
 }

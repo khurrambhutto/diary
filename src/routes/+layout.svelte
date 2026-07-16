@@ -10,7 +10,7 @@
   import "@fontsource/atkinson-hyperlegible/700.css";
 
   import { onMount } from "svelte";
-  import { page } from "$app/stores";
+  import { onNavigate } from "$app/navigation";
   import { getCurrentWindow } from "@tauri-apps/api/window";
   import TitleBar from "$lib/components/TitleBar.svelte";
   import ViewSwitch from "$lib/components/ViewSwitch.svelte";
@@ -21,9 +21,18 @@
   let maximized = $state(false);
   let unlisten: UnlistenFn | null = null;
 
-  // Seed the view rune from the URL once on first render.
-  $effect(() => {
-    setViewFromPath($page.url.pathname);
+  // Keep the view rune in sync with the route on every SPA navigation.
+  onNavigate((navigation) => {
+    if (navigation.to) {
+      setViewFromPath(navigation.to.url.pathname);
+    }
+    if (!("startViewTransition" in document)) return;
+    return new Promise((resolve) => {
+      document.startViewTransition(async () => {
+        resolve();
+        await navigation.complete;
+      });
+    });
   });
 
   onMount(() => {
@@ -51,7 +60,9 @@
         <ViewSwitch />
       </div>
 
-      {@render children()}
+      <div class="page-surface">
+        {@render children()}
+      </div>
     </main>
   </div>
 </div>
@@ -77,13 +88,23 @@
     color: var(--ink);
     border-radius: 16px;
     overflow: hidden;
-    box-shadow:
-      0 0 0 1px var(--line),
-      0 10px 40px rgba(0, 0, 0, 0.18);
+    box-shadow: var(--window-shadow);
     transition: border-radius 120ms ease, box-shadow 120ms ease;
   }
   .maximized .app-shell {
     border-radius: 0;
     box-shadow: none;
+  }
+  .page-surface {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    view-transition-name: page;
+  }
+
+  :global(::view-transition-old(page)),
+  :global(::view-transition-new(page)) {
+    animation-duration: 220ms;
   }
 </style>

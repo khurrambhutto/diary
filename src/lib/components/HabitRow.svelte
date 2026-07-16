@@ -1,4 +1,6 @@
 <script lang="ts">
+  import Check from "lucide-svelte/icons/check";
+
   let {
     label,
     checked,
@@ -15,25 +17,11 @@
 </script>
 
 <label class="row">
-  <svg
-    class="box"
-    class:accent={checked}
-    viewBox="0 -960 960 960"
-    width="1.25rem"
-    height="1.25rem"
-    fill="currentColor"
-    aria-hidden="true"
-  >
+  <div class="box" class:accent={checked} aria-hidden="true">
     {#if checked}
-      <path
-        d="m424-312 282-282-56-56-226 226-114-114-56 56 170 170Z M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm0-560v560-560Z"
-      />
-    {:else}
-      <path
-        d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Z"
-      />
+      <Check size={14} color="#ffffff" strokeWidth={2.5} />
     {/if}
-  </svg>
+  </div>
   <input type="checkbox" checked={checked} onchange={onToggle} />
   <span class="label">{label}</span>
   {#if streak > 0}
@@ -53,6 +41,13 @@
     cursor: pointer;
     user-select: none;
     gap: 0;
+    padding: 0.25rem 0.5rem;
+    margin: 0 -0.5rem;
+    border-radius: 6px;
+    transition: background-color 120ms ease;
+  }
+  .row:hover {
+    background-color: var(--paper-subtle);
   }
   input {
     position: absolute;
@@ -66,13 +61,24 @@
     border: 0;
   }
   .box {
-    color: var(--ink-faint);
     flex-shrink: 0;
-    transition: color 150ms ease;
+    width: 1.25rem;
+    height: 1.25rem;
+    border: 1px solid var(--ink-faint);
     border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: scale(1);
+    transition:
+      background-color 150ms ease,
+      border-color 150ms ease,
+      transform 180ms cubic-bezier(0.34, 1.56, 0.64, 1);
   }
   .box.accent {
-    color: var(--accent);
+    background-color: var(--accent);
+    border-color: var(--accent);
+    transform: scale(1.12);
   }
   .label {
     margin-left: 0.625rem;
@@ -101,19 +107,27 @@
     cursor: pointer;
     color: var(--ink-faint);
     opacity: 0;
-    transition: opacity 150ms ease, color 150ms ease;
+    transform: translateX(4px);
+    transition:
+      opacity 150ms ease,
+      transform 150ms cubic-bezier(0.34, 1.56, 0.64, 1),
+      color 150ms ease;
     display: flex;
     align-items: center;
     justify-content: center;
+    border-radius: 4px;
   }
-  .row:hover .delete {
+  .row:hover .delete,
+  .row:focus-within .delete {
     opacity: 1;
+    transform: translateX(0);
   }
   .delete:hover {
     color: #ef4444;
+    background-color: rgba(239, 68, 68, 0.08);
   }
   .row:focus-within .box {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
+    outline: none;
+    box-shadow: 0 0 0 2px var(--accent);
   }
 </style>

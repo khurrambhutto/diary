@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { flip } from "svelte/animate";
+  import { slide } from "svelte/transition";
   import { todoItems, addTodo, removeTodo } from "$lib/stores/todos.svelte";
   import TodoRow from "./TodoRow.svelte";
 
@@ -30,7 +32,13 @@
       <p class="empty">Nothing for today</p>
     {:else}
       {#each list as item (item.id)}
-        <TodoRow text={item.text} onComplete={() => void removeTodo(item.id)} />
+        <div
+          class="row-wrap"
+          animate:flip={{ duration: 200 }}
+          out:slide={{ duration: 200 }}
+        >
+          <TodoRow text={item.text} onComplete={() => void removeTodo(item.id)} />
+        </div>
       {/each}
     {/if}
   </div>
@@ -70,6 +78,9 @@
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+  }
+  .row-wrap {
+    display: flex;
   }
   .empty {
     margin: 0;

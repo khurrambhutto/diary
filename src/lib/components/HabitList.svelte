@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { flip } from "svelte/animate";
+  import { slide } from "svelte/transition";
   import {
     habits,
     isChecked,
@@ -24,13 +26,19 @@
       <p class="empty">No habits yet</p>
     {:else}
       {#each list as habit (habit.id)}
-        <HabitRow
-          label={habit.label}
-          checked={isChecked(habit.id, dateKey)}
-          streak={habitStreak(habit.id)}
-          onToggle={() => void toggleCheck(habit.id, dateKey)}
-          onDelete={() => void deleteHabit(habit.id)}
-        />
+        <div
+          class="row-wrap"
+          animate:flip={{ duration: 200 }}
+          out:slide={{ duration: 200 }}
+        >
+          <HabitRow
+            label={habit.label}
+            checked={isChecked(habit.id, dateKey)}
+            streak={habitStreak(habit.id)}
+            onToggle={() => void toggleCheck(habit.id, dateKey)}
+            onDelete={() => void deleteHabit(habit.id)}
+          />
+        </div>
       {/each}
     {/if}
   </div>
@@ -62,6 +70,9 @@
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+  }
+  .row-wrap {
+    display: flex;
   }
   .empty {
     margin: 0;

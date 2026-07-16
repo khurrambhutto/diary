@@ -99,7 +99,23 @@
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
-    padding: 0.25rem 0;
+    padding: 0.25rem 0.5rem;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--ink-faint) transparent;
+  }
+  .sidebar-scroll::-webkit-scrollbar {
+    width: 6px;
+  }
+  .sidebar-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .sidebar-scroll::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 3px;
+  }
+  .sidebar-scroll:hover::-webkit-scrollbar-thumb {
+    background: var(--ink-faint);
   }
   .divider {
     height: 1px;

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { EditorView } from "@codemirror/view";
+  import { EditorView, placeholder } from "@codemirror/view";
   import { EditorState } from "@codemirror/state";
   import { journalExtensions } from "$lib/editor/extensions";
   import { getEntry, setEntry } from "$lib/stores/journal.svelte";
@@ -37,6 +37,7 @@
         doc: getEntry(dateKey),
         extensions: [
           ...journalExtensions(),
+          placeholder("Start writing today's entry…"),
           EditorView.updateListener.of((update) => {
             if (!update.docChanged) return;
             scheduleSave();
