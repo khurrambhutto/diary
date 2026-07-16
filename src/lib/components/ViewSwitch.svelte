@@ -30,7 +30,7 @@
     class:active={currentView() === "monthly"}
     onclick={() => pick("monthly")}
   >
-    Monthly
+    More
   </button>
 </div>
 
@@ -40,12 +40,11 @@
     width: 9rem;
     height: 2rem;
     border-radius: 9999px;
-    border: 1px solid var(--ink-faint);
-    box-shadow: none;
     background: transparent;
     display: grid;
     grid-template-columns: 1fr 1fr;
     overflow: hidden;
+    box-shadow: inset 0 0 0 1px var(--ink-faint);
   }
 
   .thumb {
@@ -57,7 +56,8 @@
     border-radius: 9999px;
     background-color: var(--track);
     transform: translateX(0);
-    transition: transform 150ms ease;
+    transition: transform 220ms cubic-bezier(0.32, 0.72, 0, 1);
+    will-change: transform;
     z-index: 0;
   }
   .thumb.right {
@@ -76,6 +76,9 @@
     color: var(--ink-soft);
     cursor: pointer;
     transition: color 150ms ease, font-weight 150ms ease;
+  }
+  .slot:hover:not(.active) {
+    color: var(--ink);
   }
   .slot.active {
     color: var(--ink);

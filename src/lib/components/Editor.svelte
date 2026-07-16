@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { EditorView } from "@codemirror/view";
+  import { EditorView, placeholder } from "@codemirror/view";
   import { EditorState } from "@codemirror/state";
   import { journalExtensions } from "$lib/editor/extensions";
   import { getEntry, setEntry } from "$lib/stores/journal.svelte";
@@ -21,15 +21,29 @@
   let view: EditorView | null = null;
   let saveTimer: ReturnType<typeof setTimeout> | null = null;
 
+  function flushSave(): void {
+    if (saveTimer) {
+      clearTimeout(saveTimer);
+      saveTimer = null;
+    }
+    if (!view) return;
+    const body = view.state.doc.toString();
+    void setEntry(dateKey, body);
+  }
+
   onMount(() => {
     view = new EditorView({
       state: EditorState.create({
         doc: getEntry(dateKey),
         extensions: [
           ...journalExtensions(),
+          placeholder("Start writing today's entry…"),
           EditorView.updateListener.of((update) => {
             if (!update.docChanged) return;
             scheduleSave();
+          }),
+          EditorView.domEventHandlers({
+            blur: () => { flushSave(); },
           }),
         ],
       }),

@@ -3,6 +3,7 @@
   import { format } from "date-fns";
   import Editor from "$lib/components/Editor.svelte";
   import HabitList from "$lib/components/HabitList.svelte";
+  import TodoList from "$lib/components/TodoList.svelte";
   import {
     initJournalStore,
     isJournalHydrated,
@@ -12,24 +13,28 @@
     initHabitsStore,
     isHabitsHydrated,
   } from "$lib/stores/habits.svelte";
+  import {
+    initTodosStore,
+    isTodosHydrated,
+  } from "$lib/stores/todos.svelte";
 
-  /**
-   * Today view — layout shell only. Composes Editor + HabitList and reads
-   * from stores; no editor or habit logic lives here.
-   *
-   * Hydration rule: render nothing (blank white) until both stores are loaded.
-   */
   let ready = $state(false);
   let key = $state(todayKey());
   const dateLabel = format(new Date(), "EEEE, MMMM d");
 
   onMount(async () => {
-    await Promise.all([initJournalStore(), initHabitsStore()]);
+    await Promise.all([
+      initJournalStore(),
+      initHabitsStore(),
+      initTodosStore(),
+    ]);
     key = todayKey();
     ready = true;
   });
 
-  const hydrated = $derived(isJournalHydrated() && isHabitsHydrated());
+  const hydrated = $derived(
+    isJournalHydrated() && isHabitsHydrated() && isTodosHydrated()
+  );
 </script>
 
 {#if ready && hydrated}
@@ -43,12 +48,15 @@
       </div>
     </section>
 
-    <aside class="habits">
-      <HabitList dateKey={key} />
+    <aside class="sidebar">
+      <div class="sidebar-scroll">
+        <HabitList dateKey={key} />
+        <div class="divider"></div>
+        <TodoList />
+      </div>
     </aside>
   </div>
 {:else}
-  <!-- blank white until hydrated -->
   <div class="flex-1 min-h-0"></div>
 {/if}
 
@@ -71,18 +79,48 @@
   .date-head time {
     font-family: "Newsreader", Georgia, serif;
     font-style: italic;
-    font-size: 13px;
+    font-size: 16px;
     color: var(--ink-soft);
   }
   .editor-wrap {
     flex: 1 1 auto;
     min-height: 0;
   }
-  .habits {
+  .sidebar {
     flex: 0 0 30%;
     min-width: 0;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .sidebar-scroll {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding: 0.25rem 0.5rem;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--ink-faint) transparent;
+  }
+  .sidebar-scroll::-webkit-scrollbar {
+    width: 6px;
+  }
+  .sidebar-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .sidebar-scroll::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 3px;
+  }
+  .sidebar-scroll:hover::-webkit-scrollbar-thumb {
+    background: var(--ink-faint);
+  }
+  .divider {
+    height: 1px;
+    background-color: var(--line);
+    flex-shrink: 0;
+    margin: 0.25rem 0;
   }
 </style>

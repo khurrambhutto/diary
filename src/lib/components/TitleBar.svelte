@@ -3,7 +3,6 @@
   import { getCurrentWindow } from "@tauri-apps/api/window";
 
   // macOS puts traffic lights on the left; Windows/Linux get them on the right.
-  // Detect at runtime — checked once on mount.
   let isMac = $state(false);
 
   onMount(() => {
@@ -30,55 +29,20 @@
   }
 </script>
 
-<div
-  class="titlebar"
-  data-tauri-drag-region
-  class:mac={isMac}
-  class:win={!isMac}
->
+<div class="titlebar" data-tauri-drag-region class:mac={isMac} class:win={!isMac}>
   {#if isMac}
     <div class="lights" data-tauri-drag-region>
-      <button
-        type="button"
-        class="light close"
-        aria-label="Close"
-        onclick={close}
-      ></button>
-      <button
-        type="button"
-        class="light minimize"
-        aria-label="Minimize"
-        onclick={minimize}
-      ></button>
-      <button
-        type="button"
-        class="light maximize"
-        aria-label="Maximize"
-        onclick={toggleMaximize}
-      ></button>
+      <button type="button" class="light close" aria-label="Close" onclick={close}></button>
+      <button type="button" class="light minimize" aria-label="Minimize" onclick={minimize}></button>
+      <button type="button" class="light maximize" aria-label="Maximize" onclick={toggleMaximize}></button>
     </div>
     <div class="spacer" data-tauri-drag-region></div>
   {:else}
     <div class="spacer" data-tauri-drag-region></div>
     <div class="lights" data-tauri-drag-region>
-      <button
-        type="button"
-        class="light minimize"
-        aria-label="Minimize"
-        onclick={minimize}
-      ></button>
-      <button
-        type="button"
-        class="light maximize"
-        aria-label="Maximize"
-        onclick={toggleMaximize}
-      ></button>
-      <button
-        type="button"
-        class="light close"
-        aria-label="Close"
-        onclick={close}
-      ></button>
+      <button type="button" class="light minimize" aria-label="Minimize" onclick={minimize}></button>
+      <button type="button" class="light maximize" aria-label="Maximize" onclick={toggleMaximize}></button>
+      <button type="button" class="light close" aria-label="Close" onclick={close}></button>
     </div>
   {/if}
 </div>
@@ -91,14 +55,9 @@
     padding: 0 0.75rem;
     flex-shrink: 0;
   }
-  .titlebar.win {
-    flex-direction: row;
-  }
-
   .spacer {
     flex: 1;
   }
-
   .lights {
     display: flex;
     gap: 0.5rem;
@@ -113,19 +72,15 @@
     border: none;
     padding: 0;
     cursor: pointer;
-    background-color: var(--traffic-idle);
-    transition: background-color 120ms ease;
+    transition:
+      transform 120ms cubic-bezier(0.34, 1.56, 0.64, 1),
+      opacity 120ms ease,
+      background-color 120ms ease;
   }
-
   .light:hover {
-    background-color: var(--traffic-hover);
+    transform: scale(1.12);
   }
-
-  /* macOS symbols on hover; Windows shows mono dots */
-  .mac .light.close:hover    { background-color: #fe5f57; }
-  .mac .light.minimize:hover { background-color: #febc2e; }
-  .mac .light.maximize:hover { background-color: #28c840; }
-  .mac .light:hover::after {
+  .light:hover::after {
     color: rgba(0, 0, 0, 0.55);
     font-size: 0.625rem;
     line-height: 0.75rem;
@@ -134,17 +89,36 @@
     display: block;
     text-align: center;
   }
-  .mac .light.close:hover::after    { content: "×"; }
+
+  /* macOS: classic colored traffic lights, symbols appear on hover */
+  .mac .light.close {
+    background-color: #ff5f57;
+  }
+  .mac .light.minimize {
+    background-color: #ffbd2e;
+  }
+  .mac .light.maximize {
+    background-color: #28c840;
+  }
+  .mac .light {
+    opacity: 0.9;
+  }
+  .mac .light:hover {
+    opacity: 1;
+  }
+  .mac .light.close:hover::after { content: "×"; }
   .mac .light.minimize:hover::after { content: "−"; }
-  .mac .light.maximize:hover::after  { content: "+"; }
+  .mac .light.maximize:hover::after { content: "+"; }
 
-  /* Windows-style dots stay muted until hover */
-  .win .light.close:hover        { background-color: #e81123; }
+  /* Windows/Linux: muted dots, color on hover */
+  .win .light {
+    background-color: var(--ink-faint);
+  }
+  .win .light.close:hover {
+    background-color: #e81123;
+  }
   .win .light.minimize:hover,
-  .win .light.maximize:hover     { background-color: var(--ink-soft); }
-
-  :root {
-    --traffic-idle: var(--ink-faint);
-    --traffic-hover: var(--ink-soft);
+  .win .light.maximize:hover {
+    background-color: var(--ink-soft);
   }
 </style>
