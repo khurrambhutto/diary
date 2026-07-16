@@ -1,5 +1,5 @@
 import { load, type Store } from "@tauri-apps/plugin-store";
-import { format } from "date-fns";
+import { format, subDays, startOfDay, startOfMonth, endOfMonth, eachDayOfInterval } from "date-fns";
 
 /**
  * Journal store — one plain-text entry per day, keyed `YYYY-MM-DD`.
@@ -58,4 +58,100 @@ export async function setEntry(key: string, body: string): Promise<void> {
 /** Reactive snapshot of all entries (for future analytics). */
 export function allEntries(): JournalStore {
   return entries;
+}
+
+/** Word count for a given day's entry. */
+export function entryWordCount(key: string): number {
+  const body = entries[key] ?? "";
+  if (!body.trim()) return 0;
+  return body.trim().split(/\s+/).length;
+}
+
+/** Writing stats computed from all entries. */
+export function writingStats(): {
+  totalEntries: number;
+  currentStreak: number;
+  bestStreak: number;
+  thisMonth: number;
+} {
+  const keys = Object.keys(entries)
+    .filter((k) => (entries[k] ?? "").trim().length > 0)
+    .sort();
+
+  const totalEntries = keys.length;
+
+  // current streak: consecutive non-empty days ending today or yesterday
+  let currentStreak = 0;
+  const today = startOfDay(new Date());
+  const todayKey = format(today, "yyyy-MM-dd");
+  const yesterdayKey = format(subDays(today, 1), "yyyy-MM-dd");
+
+  if (entries[todayKey]?.trim()) {
+    currentStreak++;
+  }
+  if (!entries[todayKey]?.trim() && entries[yesterdayKey]?.trim()) {
+    currentStreak++;
+  }
+
+  const startFrom = entries[todayKey]?.trim() ? todayKey : yesterdayKey;
+  if (currentStreak > 0) {
+    const cursor = subDays(
+      new Date(startFrom + "T00:00:00"),
+      1
+    );
+    for (let i = 0; i < 365; i++) {
+      const k = format(cursor, "yyyy-MM-dd");
+      if (entries[k]?.trim()) {
+        currentStreak++;
+      } else {
+        break;
+      }
+      cursor.setDate(cursor.getDate() - 1);
+    }
+  }
+
+  // best streak
+  let bestStreak = 0;
+  let run = 0;
+  for (const k of keys) {
+    if ((entries[k] ?? "").trim().length > 0) {
+      run++;
+      if (run > bestStreak) bestStreak = run;
+    } else {
+      run = 0;
+    }
+  }
+  // also check if keys are consecutive (they're sorted above)
+  // Recalculate properly: walk every day in the date range
+  if (keys.length > 0) {
+    const firstKey = keys[0];
+    const lastKey = keys[keys.length - 1];
+    const start = new Date(firstKey + "T00:00:00");
+    const end = new Date(lastKey + "T00:00:00");
+    const allDays = eachDayOfInterval({ start, end });
+    let walkRun = 0;
+    let walkBest = 0;
+    for (const d of allDays) {
+      const k = format(d, "yyyy-MM-dd");
+      if ((entries[k] ?? "").trim().length > 0) {
+        walkRun++;
+        if (walkRun > walkBest) walkBest = walkRun;
+      } else {
+        walkRun = 0;
+      }
+    }
+    bestStreak = walkBest;
+  }
+
+  // this month
+  const monthStart = startOfMonth(today);
+  const monthEnd = endOfMonth(today);
+  let thisMonth = 0;
+  const monthDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
+  for (const d of monthDays) {
+    const k = format(d, "yyyy-MM-dd");
+    if ((entries[k] ?? "").trim().length > 0) thisMonth++;
+  }
+
+  return { totalEntries, currentStreak, bestStreak, thisMonth };
 }
