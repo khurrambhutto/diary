@@ -9,8 +9,16 @@
     onCancel: () => void;
   } = $props();
 
-  let draft = $state(value);
+  let draft = $state("");
+  let ready = $state(false);
   let inputEl: HTMLInputElement | undefined = $state();
+
+  $effect(() => {
+    if (!ready) {
+      draft = value;
+      ready = true;
+    }
+  });
 
   function commit() {
     onCommit(draft);
