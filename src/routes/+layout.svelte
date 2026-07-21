@@ -1,6 +1,4 @@
 <script lang="ts">
-  import "../app.css";
-
   // Newsreader — journal body (serif)
   import "@fontsource/newsreader/400.css";
   import "@fontsource/newsreader/400-italic.css";
