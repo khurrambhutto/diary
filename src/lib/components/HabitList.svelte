@@ -18,10 +18,6 @@
 </script>
 
 <div class="habit-section">
-  <div class="header">
-    <h3 class="title">Habits</h3>
-  </div>
-
   <div class="list">
     {#if list.length === 0}
       <p class="empty">No habits yet</p>
@@ -52,21 +48,7 @@
   .habit-section {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
-  }
-  .header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .title {
-    margin: 0;
-    font-family: "Atkinson Hyperlegible", system-ui, sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--ink);
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
+    gap: 0.5rem;
   }
   .list {
     display: flex;

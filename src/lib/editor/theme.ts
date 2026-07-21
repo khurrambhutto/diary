@@ -25,7 +25,7 @@ export const journalTheme = EditorView.theme({
     fontFamily: '"Newsreader", Georgia, serif',
     fontSize: "17px",
     lineHeight: "1.7",
-    padding: "2rem 2.5rem",
+    padding: "1.25rem 1.5rem",
     caretColor: "var(--ink)",
     maxWidth: "100%",
   },

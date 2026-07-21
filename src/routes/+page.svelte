@@ -1,5 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import { fly } from "svelte/transition";
+  import { cubicOut } from "svelte/easing";
   import Editor from "$lib/components/Editor.svelte";
   import HabitList from "$lib/components/HabitList.svelte";
   import TodoList from "$lib/components/TodoList.svelte";
@@ -7,7 +9,6 @@
   import {
     initJournalStore,
     isJournalHydrated,
-    getEntry,
   } from "$lib/stores/journal.svelte";
   import {
     initHabitsStore,
@@ -20,12 +21,13 @@
   import {
     initSelectedDate,
     selectedKey,
-    selectDate,
-    selectToday,
     isViewingToday,
   } from "$lib/stores/selected-date.svelte";
 
   let ready = $state(false);
+  let swipeDir = $state(1);
+  let lastKey = $state<string | null>(null);
+  let allowSwipe = $state(false);
 
   onMount(async () => {
     await Promise.all([
@@ -35,96 +37,122 @@
     ]);
     initSelectedDate();
     ready = true;
+    requestAnimationFrame(() => {
+      allowSwipe = true;
+    });
   });
 
   const key = $derived(selectedKey());
-  const dateKey = $derived(selectedKey());
+  const dateKey = $derived(key);
   const readonly = $derived(!isViewingToday());
 
   const hydrated = $derived(
     isJournalHydrated() && isHabitsHydrated() && isTodosHydrated()
   );
+
+  $effect.pre(() => {
+    const next = selectedKey();
+    if (lastKey !== null && next !== lastKey) {
+      swipeDir = next > lastKey ? 1 : -1;
+    }
+    lastKey = next;
+  });
+
+  const swipeIn = $derived(
+    allowSwipe
+      ? { x: swipeDir * 56, duration: 280, opacity: 0 as number, easing: cubicOut }
+      : { x: 0, duration: 0, opacity: 1 as number, easing: cubicOut }
+  );
+  const swipeOut = $derived({
+    x: swipeDir * -56,
+    duration: allowSwipe ? 280 : 0,
+    opacity: 0 as number,
+    easing: cubicOut,
+  });
 </script>
 
 {#if ready && hydrated}
-  <div class="canvas">
-    <section class="journal">
-      <DateHeader
-        selectedKey={key}
-        isToday={isViewingToday()}
-        onPickDate={(k) => selectDate(k)}
-        onBackToToday={() => selectToday()}
-        hasEntry={(k) => getEntry(k).trim().length > 0}
-      />
-      <div class="editor-wrap">
-        <Editor {dateKey} {readonly} />
-      </div>
-    </section>
+  <div class="slide-viewport">
+    {#key key}
+      <div class="today-page" in:fly={swipeIn} out:fly={swipeOut}>
+        <DateHeader selectedKey={key} />
 
-    <aside class="sidebar">
-      <div class="sidebar-scroll">
-        <HabitList dateKey={key} />
-        <div class="divider"></div>
-        <TodoList />
+        <div class="panels-row">
+          <section class="card habits-card">
+            <h3 class="card-title">Habits</h3>
+            <HabitList dateKey={key} />
+          </section>
+
+          <section class="card todo-card">
+            <h3 class="card-title">To Do</h3>
+            <TodoList />
+          </section>
+        </div>
+
+        <section class="card note-card">
+          <div class="note-header">
+            <h3 class="card-title">Daily Note</h3>
+          </div>
+          <div class="editor-wrap">
+            <Editor {dateKey} {readonly} />
+          </div>
+        </section>
       </div>
-    </aside>
+    {/key}
   </div>
 {:else}
   <div class="flex-1 min-h-0"></div>
 {/if}
 
 <style>
-  .canvas {
+  .slide-viewport {
+    position: relative;
     flex: 1 1 auto;
     min-height: 0;
-    display: flex;
-    gap: 2rem;
+    overflow: hidden;
   }
-  .journal {
-    flex: 1 1 70%;
-    min-width: 0;
+  .today-page {
+    position: absolute;
+    inset: 0;
     display: flex;
     flex-direction: column;
+    gap: 0.375rem;
+  }
+  .panels-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.375rem;
+    flex-shrink: 0;
+  }
+  .card {
+    background: var(--paper-subtle);
+    border-radius: 10px;
+    padding: 0.625rem 0.875rem;
+    display: flex;
+    flex-direction: column;
+  }
+  .card-title {
+    margin: 0 0 0.5rem;
+    font-family: "Atkinson Hyperlegible", system-ui, sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+  .note-card {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  .note-header {
+    margin-bottom: 0.25rem;
+    flex-shrink: 0;
   }
   .editor-wrap {
     flex: 1 1 auto;
     min-height: 0;
-  }
-  .sidebar {
-    flex: 0 0 30%;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
+    background: var(--paper);
+    border-radius: 8px;
     overflow: hidden;
-  }
-  .sidebar-scroll {
-    flex: 1;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-    padding: 0.25rem 0.5rem;
-    overscroll-behavior: contain;
-    scrollbar-width: thin;
-    scrollbar-color: var(--ink-faint) transparent;
-  }
-  .sidebar-scroll::-webkit-scrollbar {
-    width: 6px;
-  }
-  .sidebar-scroll::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  .sidebar-scroll::-webkit-scrollbar-thumb {
-    background: transparent;
-    border-radius: 3px;
-  }
-  .sidebar-scroll:hover::-webkit-scrollbar-thumb {
-    background: var(--ink-faint);
-  }
-  .divider {
-    height: 1px;
-    background-color: var(--line);
-    flex-shrink: 0;
-    margin: 0.25rem 0;
   }
 </style>

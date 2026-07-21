@@ -7,11 +7,13 @@ import { goto } from "$app/navigation";
  * refresh / deep-link lands on the right page.
  */
 
-export type View = "today" | "monthly";
+export type View = "today" | "monthly" | "settings";
 
 function initialView(): View {
   if (typeof window !== "undefined") {
-    return window.location.pathname.startsWith("/monthly") ? "monthly" : "today";
+    const p = window.location.pathname;
+    if (p.startsWith("/monthly")) return "monthly";
+    if (p.startsWith("/settings")) return "settings";
   }
   return "today";
 }
@@ -24,12 +26,15 @@ export function currentView(): View {
 
 /** Seed `current` from the URL on first load. Call once from the root layout. */
 export function setViewFromPath(pathname: string): void {
-  current = pathname.startsWith("/monthly") ? "monthly" : "today";
+  if (pathname.startsWith("/monthly")) current = "monthly";
+  else if (pathname.startsWith("/settings")) current = "settings";
+  else current = "today";
 }
 
 /** Switch to a view — updates the rune and navigates the route. */
 export function setView(view: View): void {
   current = view;
-  const href = view === "monthly" ? "/monthly" : "/";
+  const href =
+    view === "monthly" ? "/monthly" : view === "settings" ? "/settings" : "/";
   void goto(href);
 }

@@ -1,5 +1,5 @@
 import { load, type Store } from "@tauri-apps/plugin-store";
-import { format } from "date-fns";
+import { differenceInCalendarDays, parseISO, startOfDay } from "date-fns";
 
 const STORE_PATH = ".diary-store.json";
 const TODOS_KEY = "todos";
@@ -10,16 +10,41 @@ let store: Store | null = null;
 let items = $state<TodoItem[]>([]);
 let hydrated = $state(false);
 
-function dateKey(date: Date = new Date()): string {
-  return format(date, "yyyy-MM-dd");
+function ageDaysOf(createdAt: string, now = new Date()): number {
+  const created = startOfDay(parseISO(createdAt));
+  return Math.max(0, differenceInCalendarDays(startOfDay(now), created));
+}
+
+/** Migrate legacy date-keyed lists into one open backlog. */
+function normalize(raw: unknown): TodoItem[] {
+  if (Array.isArray(raw)) {
+    return (raw as TodoItem[]).filter(
+      (t) => t && typeof t.id === "string" && typeof t.text === "string" && typeof t.createdAt === "string"
+    );
+  }
+  if (raw && typeof raw === "object") {
+    const byId = new Map<string, TodoItem>();
+    for (const list of Object.values(raw as Record<string, TodoItem[]>)) {
+      if (!Array.isArray(list)) continue;
+      for (const t of list) {
+        if (!t?.id || byId.has(t.id)) continue;
+        byId.set(t.id, t);
+      }
+    }
+    return [...byId.values()].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  }
+  return [];
 }
 
 export async function initTodosStore(): Promise<void> {
   if (hydrated) return;
   store = await load(STORE_PATH);
-  const all = await store.get<Record<string, TodoItem[]>>(TODOS_KEY);
-  const today = all?.[dateKey()];
-  items = today ?? [];
+  const raw = await store.get<unknown>(TODOS_KEY);
+  items = normalize(raw);
+  // Rewrite legacy shape once so later reads stay simple.
+  if (raw && !Array.isArray(raw)) {
+    await persist();
+  }
   hydrated = true;
 }
 
@@ -31,8 +56,17 @@ export function todoItems(): TodoItem[] {
   return items;
 }
 
+/** Calendar days since the todo was created (0 = today). */
+export function todoAgeDays(item: TodoItem, now = new Date()): number {
+  return ageDaysOf(item.createdAt, now);
+}
+
+function capitalize(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
 export async function addTodo(text: string): Promise<void> {
-  const trimmed = text.trim();
+  const trimmed = capitalize(text.trim());
   if (!trimmed) return;
   const todo: TodoItem = {
     id: `t-${Date.now().toString(36)}`,
@@ -49,7 +83,5 @@ export async function removeTodo(id: string): Promise<void> {
 }
 
 async function persist(): Promise<void> {
-  const all = await store?.get<Record<string, TodoItem[]>>(TODOS_KEY) ?? {};
-  all[dateKey()] = items;
-  await store?.set(TODOS_KEY, all);
+  await store?.set(TODOS_KEY, items);
 }

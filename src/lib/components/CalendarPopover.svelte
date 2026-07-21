@@ -126,17 +126,87 @@
 
 <style>
   .backdrop { position: fixed; inset: 0; z-index: 40; }
-  .popover { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 0.5rem; z-index: 50; width: 14rem; }
-  .popover-inner { background: var(--paper-raised); border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--window-shadow); padding: 0.75rem; }
-  .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
-  .month-label { font-family: "Atkinson Hyperlegible", system-ui, sans-serif; font-size: 13px; font-weight: 700; color: var(--ink); }
-  .nav { background: none; border: none; padding: 0.25rem; cursor: pointer; color: var(--ink-soft); border-radius: 4px; display: flex; align-items: center; transition: color 120ms ease, background-color 120ms ease; }
+  .popover {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: 0;
+    z-index: 50;
+    width: 16.5rem;
+  }
+  .popover-inner {
+    background: var(--paper-raised);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    box-shadow: var(--window-shadow);
+    padding: 0.75rem;
+  }
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.25rem;
+    margin-bottom: 0.5rem;
+  }
+  .month-label {
+    font-family: "Atkinson Hyperlegible", system-ui, sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  .nav {
+    background: none;
+    border: none;
+    padding: 0.25rem;
+    cursor: pointer;
+    color: var(--ink-soft);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    transition: color 120ms ease, background-color 120ms ease;
+  }
   .nav:hover { color: var(--ink); background-color: var(--paper-subtle); }
-  .weekdays { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 0.25rem; }
-  .weekday { text-align: center; font-family: "Atkinson Hyperlegible", system-ui, sans-serif; font-size: 11px; font-weight: 400; color: var(--ink-faint); text-transform: uppercase; padding: 0.125rem 0; }
+  .weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    margin-bottom: 0.25rem;
+  }
+  .weekday {
+    text-align: center;
+    font-family: "Atkinson Hyperlegible", system-ui, sans-serif;
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    padding: 0.125rem 0;
+  }
   .grid { display: flex; flex-direction: column; gap: 0; }
-  .week-row { display: grid; grid-template-columns: repeat(7, 1fr); }
-  .day { position: relative; width: 2rem; height: 2rem; display: flex; align-items: center; justify-content: center; background: none; border: 1px solid transparent; border-radius: 6px; cursor: pointer; font-family: "Atkinson Hyperlegible", system-ui, sans-serif; font-size: 11px; font-weight: 400; color: var(--ink); transition: background-color 100ms ease; margin: 0 auto; }
+  .week-row {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
+  .day {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
+    max-width: 2rem;
+    height: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: "Atkinson Hyperlegible", system-ui, sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--ink);
+    transition: background-color 100ms ease;
+    margin: 0 auto;
+    padding: 0;
+  }
   .day:hover { background-color: var(--paper-subtle); }
   .day.out-month { color: var(--ink-faint); }
   .day.today { font-weight: 700; border-color: var(--accent); background-color: var(--accent-soft); }

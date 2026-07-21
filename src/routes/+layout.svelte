@@ -13,7 +13,7 @@
   import { onNavigate } from "$app/navigation";
   import { getCurrentWindow } from "@tauri-apps/api/window";
   import TitleBar from "$lib/components/TitleBar.svelte";
-  import ViewSwitch from "$lib/components/ViewSwitch.svelte";
+  import TopBar from "$lib/components/TopBar.svelte";
   import { setViewFromPath } from "$lib/stores/view.svelte";
 
   type UnlistenFn = () => void;
@@ -21,16 +21,34 @@
   let maximized = $state(false);
   let unlisten: UnlistenFn | null = null;
 
-  // Keep the view rune in sync with the route on every SPA navigation.
+  function routeIndex(pathname: string): number {
+    if (pathname.startsWith("/monthly")) return 1;
+    if (pathname.startsWith("/settings")) return 2;
+    return 0;
+  }
+
+  // Keep the view rune in sync; swipe old page out / new page in.
   onNavigate((navigation) => {
     if (navigation.to) {
       setViewFromPath(navigation.to.url.pathname);
     }
     if (!("startViewTransition" in document)) return;
+    if (!navigation.from || !navigation.to) return;
+
+    const from = routeIndex(navigation.from.url.pathname);
+    const to = routeIndex(navigation.to.url.pathname);
+    if (from === to) return;
+
+    const dir = to > from ? "forward" : "back";
+    document.documentElement.dataset.navDir = dir;
+
     return new Promise((resolve) => {
-      document.startViewTransition(async () => {
+      const transition = document.startViewTransition(async () => {
         resolve();
         await navigation.complete;
+      });
+      transition.finished.finally(() => {
+        delete document.documentElement.dataset.navDir;
       });
     });
   });
@@ -55,12 +73,10 @@
   <div class="app-shell">
     <TitleBar />
 
-    <main class="flex-1 flex flex-col min-h-0" style="padding: 1.5rem;">
-      <div class="h-8 flex items-center justify-center">
-        <ViewSwitch />
-      </div>
+    <main class="flex-1 flex flex-col min-h-0" style="padding: 0;">
+      <TopBar />
 
-      <div class="page-surface">
+      <div class="page-surface" style="padding: 0 0.5rem 0.5rem;">
         {@render children()}
       </div>
     </main>
@@ -103,8 +119,65 @@
     view-transition-name: page;
   }
 
+  :global(::view-transition-old(root)),
+  :global(::view-transition-new(root)) {
+    animation: none;
+    mix-blend-mode: normal;
+  }
+
+  :global(::view-transition-group(page)) {
+    overflow: hidden;
+  }
+
   :global(::view-transition-old(page)),
   :global(::view-transition-new(page)) {
-    animation-duration: 220ms;
+    animation-duration: 280ms;
+    animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+    animation-fill-mode: both;
+  }
+
+  :global(html[data-nav-dir="forward"]::view-transition-old(page)) {
+    animation-name: swipe-out-left;
+  }
+  :global(html[data-nav-dir="forward"]::view-transition-new(page)) {
+    animation-name: swipe-in-right;
+  }
+  :global(html[data-nav-dir="back"]::view-transition-old(page)) {
+    animation-name: swipe-out-right;
+  }
+  :global(html[data-nav-dir="back"]::view-transition-new(page)) {
+    animation-name: swipe-in-left;
+  }
+
+  @keyframes swipe-out-left {
+    to {
+      transform: translateX(-28%);
+      opacity: 0;
+    }
+  }
+  @keyframes swipe-in-right {
+    from {
+      transform: translateX(28%);
+      opacity: 0;
+    }
+  }
+  @keyframes swipe-out-right {
+    to {
+      transform: translateX(28%);
+      opacity: 0;
+    }
+  }
+  @keyframes swipe-in-left {
+    from {
+      transform: translateX(-28%);
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :global(::view-transition-old(page)),
+    :global(::view-transition-new(page)) {
+      animation-duration: 1ms;
+    }
   }
 </style>

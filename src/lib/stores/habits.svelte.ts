@@ -57,11 +57,15 @@ export async function toggleCheck(habitId: string, dayKey: string): Promise<void
   await store?.set(HABITS_KEY, state);
 }
 
+function capitalize(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
 export async function addHabit(label: string): Promise<void> {
   const id = `h-${Date.now().toString(36)}`;
   state.habits = [
     ...state.habits,
-    { id, label: label.trim(), createdAt: new Date().toISOString() },
+    { id, label: capitalize(label.trim()), createdAt: new Date().toISOString() },
   ];
   await store?.set(HABITS_KEY, state);
 }

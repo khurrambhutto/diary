@@ -1,7 +1,12 @@
 <script lang="ts">
   import { flip } from "svelte/animate";
   import { slide } from "svelte/transition";
-  import { todoItems, addTodo, removeTodo } from "$lib/stores/todos.svelte";
+  import {
+    todoItems,
+    todoAgeDays,
+    addTodo,
+    removeTodo,
+  } from "$lib/stores/todos.svelte";
   import TodoRow from "./TodoRow.svelte";
 
   let text = $state("");
@@ -23,10 +28,6 @@
 </script>
 
 <div class="todo-section">
-  <div class="header">
-    <h3 class="title">To do</h3>
-  </div>
-
   <div class="list">
     {#if list.length === 0}
       <p class="empty">Nothing for today</p>
@@ -37,7 +38,11 @@
           animate:flip={{ duration: 200 }}
           out:slide={{ duration: 200 }}
         >
-          <TodoRow text={item.text} onComplete={() => void removeTodo(item.id)} />
+          <TodoRow
+            text={item.text}
+            ageDays={todoAgeDays(item)}
+            onComplete={() => void removeTodo(item.id)}
+          />
         </div>
       {/each}
     {/if}
@@ -58,21 +63,7 @@
   .todo-section {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
-  }
-  .header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .title {
-    margin: 0;
-    font-family: "Atkinson Hyperlegible", system-ui, sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--ink);
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
+    gap: 0.5rem;
   }
   .list {
     display: flex;
