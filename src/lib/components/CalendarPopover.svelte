@@ -41,20 +41,14 @@
     const end = endOfWeek(endOfMonth(currentMonth), { weekStartsOn: 1 });
     const days = eachDayOfInterval({ start, end });
     const rows: Date[][] = [];
-    for (let i = 0; i < days.length; i += 7) {
-      rows.push(days.slice(i, i + 7));
-    }
+    for (let i = 0; i < days.length; i += 7) rows.push(days.slice(i, i + 7));
     return rows;
   });
 
   const monthLabel = $derived(format(currentMonth, "MMMM yyyy"));
 
-  function prevMonth() {
-    currentMonth = subMonths(currentMonth, 1);
-  }
-
-  function nextMonth() {
-    currentMonth = addMonths(currentMonth, 1);
+  function shiftMonth(delta: number) {
+    currentMonth = delta < 0 ? subMonths(currentMonth, -delta) : addMonths(currentMonth, delta);
   }
 
   function handlePick(d: Date) {
@@ -62,84 +56,38 @@
     onPick(focusKey);
   }
 
-  function handleKeydown(e: KeyboardEvent) {
+  function moveFocus(dx: number, dy: number) {
     const d = parse(focusKey, "yyyy-MM-dd", new Date());
-    switch (e.key) {
-      case "Escape":
-        e.preventDefault();
-        onClose();
-        break;
-      case "ArrowLeft": {
-        e.preventDefault();
-        const prev = new Date(d);
-        prev.setDate(prev.getDate() - 1);
-        focusKey = format(prev, "yyyy-MM-dd");
-        if (!isSameMonth(prev, currentMonth)) {
-          currentMonth = prev;
-        }
-        break;
-      }
-      case "ArrowRight": {
-        e.preventDefault();
-        const next = new Date(d);
-        next.setDate(next.getDate() + 1);
-        focusKey = format(next, "yyyy-MM-dd");
-        if (!isSameMonth(next, currentMonth)) {
-          currentMonth = next;
-        }
-        break;
-      }
-      case "ArrowUp": {
-        e.preventDefault();
-        const up = new Date(d);
-        up.setDate(up.getDate() - 7);
-        focusKey = format(up, "yyyy-MM-dd");
-        if (!isSameMonth(up, currentMonth)) {
-          currentMonth = up;
-        }
-        break;
-      }
-      case "ArrowDown": {
-        e.preventDefault();
-        const down = new Date(d);
-        down.setDate(down.getDate() + 7);
-        focusKey = format(down, "yyyy-MM-dd");
-        if (!isSameMonth(down, currentMonth)) {
-          currentMonth = down;
-        }
-        break;
-      }
-      case "Enter": {
-        e.preventDefault();
-        onPick(focusKey);
-        break;
-      }
-    }
+    d.setDate(d.getDate() + dx + dy * 7);
+    focusKey = format(d, "yyyy-MM-dd");
+    if (!isSameMonth(d, currentMonth)) currentMonth = d;
+  }
+
+  function handleKeydown(e: KeyboardEvent) {
+    const map: Record<string, () => void> = {
+      Escape: onClose,
+      ArrowLeft: () => moveFocus(-1, 0),
+      ArrowRight: () => moveFocus(1, 0),
+      ArrowUp: () => moveFocus(0, -1),
+      ArrowDown: () => moveFocus(0, 1),
+      Enter: () => onPick(focusKey),
+    };
+    map[e.key]?.();
+    if (map[e.key]) e.preventDefault();
   }
 </script>
 
-<div class="backdrop" role="presentation" onclick={onClose} onkeydown={handleKeydown}></div>
+<div class="backdrop" role="presentation" onclick={onClose}></div>
 
-<div
-  class="popover"
-  role="dialog"
-  aria-label="Date picker"
-  tabindex="-1"
-  transition:fade={{ duration: 140 }}
-  onkeydown={handleKeydown}
->
+<div class="popover" role="dialog" aria-label="Date picker" tabindex="-1" transition:fade={{ duration: 140 }} onkeydown={handleKeydown}>
   <div class="popover-inner" transition:scale={{ start: 0.95, duration: 140 }}>
     <div class="header">
-      <button type="button" class="nav" aria-label="Previous month" onclick={prevMonth}>
-        <svg viewBox="0 0 20 20" width="14" height="14" fill="currentColor">
-          <path d="M12.707 5.293a1 1 0 0 1 0 1.414L9.414 10l3.293 3.293a1 1 0 0 1-1.414 1.414l-4-4a1 1 0 0 1 0-1.414l4-4a1 1 0 0 1 1.414 0z" />
-        </svg>
+      <button type="button" class="nav" aria-label="Previous month" onclick={() => shiftMonth(-1)}>
+        <svg viewBox="0 0 20 20" width="14" height="14" fill="currentColor"><path d="M12.707 5.293a1 1 0 0 1 0 1.414L9.414 10l3.293 3.293a1 1 0 0 1-1.414 1.414l-4-4a1 1 0 0 1 0-1.414l4-4a1 1 0 0 1 1.414 0z"/></svg>
       </button>
       <span class="month-label">{monthLabel}</span>
-      <button type="button" class="nav" aria-label="Next month" onclick={nextMonth}>
-        <svg viewBox="0 0 20 20" width="14" height="14" fill="currentColor">
-          <path d="M7.293 14.707a1 1 0 0 1 0-1.414L10.586 10 7.293 6.707a1 1 0 0 1 1.414-1.414l4 4a1 1 0 0 1 0 1.414l-4 4a1 1 0 0 1-1.414 0z" />
-        </svg>
+      <button type="button" class="nav" aria-label="Next month" onclick={() => shiftMonth(1)}>
+        <svg viewBox="0 0 20 20" width="14" height="14" fill="currentColor"><path d="M7.293 14.707a1 1 0 0 1 0-1.414L10.586 10 7.293 6.707a1 1 0 0 1 1.414-1.414l4 4a1 1 0 0 1 0 1.414l-4 4a1 1 0 0 1-1.414 0z"/></svg>
       </button>
     </div>
 
@@ -155,16 +103,12 @@
           {#each week as day}
             {@const dk = format(day, "yyyy-MM-dd")}
             {@const inMonth = isSameMonth(day, currentMonth)}
-            {@const today_ = isToday(day)}
-            {@const focused = dk === focusKey}
-            {@const same = isSameDay(day, parse(focusKey, "yyyy-MM-dd", new Date()))}
             <button
               type="button"
               class="day"
               class:out-month={!inMonth}
-              class:today={today_}
-              class:focused={focused || (same && inMonth)}
-              class:has-entry={hasEntry(dk)}
+              class:today={isToday(day)}
+              class:focused={dk === focusKey && inMonth}
               aria-label={format(day, "EEEE, MMMM d, yyyy")}
               onclick={() => handlePick(day)}
             >
@@ -181,117 +125,21 @@
 </div>
 
 <style>
-  .backdrop {
-    position: fixed;
-    inset: 0;
-    z-index: 40;
-  }
-  .popover {
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    margin-top: 0.5rem;
-    z-index: 50;
-    width: 14rem;
-  }
-  .popover-inner {
-    background: var(--paper-raised);
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    box-shadow: var(--window-shadow);
-    padding: 0.75rem;
-  }
-  .header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 0.5rem;
-  }
-  .month-label {
-    font-family: "Atkinson Hyperlegible", system-ui, sans-serif;
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--ink);
-  }
-  .nav {
-    background: none;
-    border: none;
-    padding: 0.25rem;
-    cursor: pointer;
-    color: var(--ink-soft);
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    transition: color 120ms ease, background-color 120ms ease;
-  }
-  .nav:hover {
-    color: var(--ink);
-    background-color: var(--paper-subtle);
-  }
-  .weekdays {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    margin-bottom: 0.25rem;
-  }
-  .weekday {
-    text-align: center;
-    font-family: "Atkinson Hyperlegible", system-ui, sans-serif;
-    font-size: 11px;
-    font-weight: 400;
-    color: var(--ink-faint);
-    text-transform: uppercase;
-    padding: 0.125rem 0;
-  }
-  .grid {
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-  }
-  .week-row {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-  }
-  .day {
-    position: relative;
-    width: 2rem;
-    height: 2rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: none;
-    border: 1px solid transparent;
-    border-radius: 6px;
-    cursor: pointer;
-    font-family: "Atkinson Hyperlegible", system-ui, sans-serif;
-    font-size: 11px;
-    font-weight: 400;
-    color: var(--ink);
-    transition: background-color 100ms ease;
-    margin: 0 auto;
-  }
-  .day:hover {
-    background-color: var(--paper-subtle);
-  }
-  .day.out-month {
-    color: var(--ink-faint);
-  }
-  .day.today {
-    font-weight: 700;
-    border-color: var(--accent);
-    background-color: var(--accent-soft);
-  }
-  .day.focused {
-    box-shadow: 0 0 0 2px var(--accent);
-  }
-  .dot {
-    position: absolute;
-    bottom: 2px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 3px;
-    height: 3px;
-    border-radius: 50%;
-    background-color: var(--accent);
-  }
+  .backdrop { position: fixed; inset: 0; z-index: 40; }
+  .popover { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 0.5rem; z-index: 50; width: 14rem; }
+  .popover-inner { background: var(--paper-raised); border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--window-shadow); padding: 0.75rem; }
+  .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
+  .month-label { font-family: "Atkinson Hyperlegible", system-ui, sans-serif; font-size: 13px; font-weight: 700; color: var(--ink); }
+  .nav { background: none; border: none; padding: 0.25rem; cursor: pointer; color: var(--ink-soft); border-radius: 4px; display: flex; align-items: center; transition: color 120ms ease, background-color 120ms ease; }
+  .nav:hover { color: var(--ink); background-color: var(--paper-subtle); }
+  .weekdays { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 0.25rem; }
+  .weekday { text-align: center; font-family: "Atkinson Hyperlegible", system-ui, sans-serif; font-size: 11px; font-weight: 400; color: var(--ink-faint); text-transform: uppercase; padding: 0.125rem 0; }
+  .grid { display: flex; flex-direction: column; gap: 0; }
+  .week-row { display: grid; grid-template-columns: repeat(7, 1fr); }
+  .day { position: relative; width: 2rem; height: 2rem; display: flex; align-items: center; justify-content: center; background: none; border: 1px solid transparent; border-radius: 6px; cursor: pointer; font-family: "Atkinson Hyperlegible", system-ui, sans-serif; font-size: 11px; font-weight: 400; color: var(--ink); transition: background-color 100ms ease; margin: 0 auto; }
+  .day:hover { background-color: var(--paper-subtle); }
+  .day.out-month { color: var(--ink-faint); }
+  .day.today { font-weight: 700; border-color: var(--accent); background-color: var(--accent-soft); }
+  .day.focused { box-shadow: 0 0 0 2px var(--accent); }
+  .dot { position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); width: 3px; height: 3px; border-radius: 50%; background-color: var(--accent); }
 </style>
