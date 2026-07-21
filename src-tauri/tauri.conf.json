@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "diary",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "identifier": "com.khurram.diary",
   "build": {
     "beforeDevCommand": "bun run dev",
@@ -13,8 +13,8 @@
     "windows": [
       {
         "title": "Diary",
-        "width": 1200,
-        "height": 800,
+        "width": 800,
+        "height": 1000,
         "decorations": false,
         "transparent": true,
         "shadow": true,
