@@ -5,7 +5,7 @@ Single white background. Warm, calm, book-like — not a productivity dashboard.
 
 <picture>
   <source media="(prefers-color-scheme: light)" srcset="new_light.png">
-  <img src="new_dark.png" alt="Diary app — Today view showing journal editor, habit list, and to-do section" width="800">
+  <img src="new_dark.png" alt="Diary app — Today view showing journal editor, habit list, and to-do section" width="600">
 </picture>
 
 ## Features
