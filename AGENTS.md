@@ -8,14 +8,16 @@ Read this before touching anything. Follow it unless you have a strong reason an
 **Diary** is a minimal, cozy desktop app for **daily journaling + habit tracking**.
 Single white background. Warm, calm, book-like — not a productivity dashboard.
 
-Two pages, toggled by a pill-shaped switch at top-center of the window:
+Three views, navigated by a three-segment pill (Yesterday / Today / Analytics)
+in the top bar alongside a calendar icon (date picker) and settings gear:
 
-- **Today** (default, Phase 1) — the main view
-  - Left 70% of the window: a writing surface for today's journal entry (plain text).
-  - Right 30% of the window, centered: a vertical list of habits with checkbox labels
-    (e.g. "Study session", "Go to gym", "Read 10 pages"). User ticks them off.
-- **Monthly** (Phase 2 — skip charts for now) — calendar/analytics view.
-  Build the shell and the toggle, leave the content area as a placeholder for now.
+- **Today** (default) — the main view, top-to-bottom layout:
+  - Top bar: calendar icon (opens date picker), 3-segment nav pill, settings gear.
+  - Date heading: large Newsreader serif ("Tuesday, June 27").
+  - Two cards side-by-side: **Habits** (checkboxes) and **To Do** (tasks).
+  - **Daily Note** card below, filling remaining space: CodeMirror writing surface.
+- **Analytics** — writing streaks, habit heatmap, per-habit stats.
+- **Settings** — placeholder for future features.
 
 No multi-user, no cloud sync, no auth. Offline-first single-user desktop app.
 
@@ -81,21 +83,34 @@ src/
   lib/
     components/
       Editor.svelte               # CodeMirror wrapper (journal surface)
-      HabitList.svelte            # Right 30% — checkboxes
-      ViewSwitch.svelte           # Top-center Today / Monthly pill
+      HabitList.svelte            # Habits card content — checkboxes + add form
+      TodoList.svelte             # To do card content — task list + add form
+      TopBar.svelte               # Top bar: calendar icon + nav pill + settings gear
+      ViewSwitch.svelte           # 3-segment pill: Yesterday / Today / Analytics
+      DateHeader.svelte           # Large serif date heading
+      CalendarPopover.svelte      # Calendar date picker popover
+      HabitRow.svelte             # Single habit row with checkbox + menu
+      HabitAddForm.svelte         # Habit text input + add button
+      TodoRow.svelte              # Single todo row with circle + text
+      HabitMenu.svelte            # Habit options popover (rename/delete)
+      HabitLabelEdit.svelte       # Inline habit label rename input
     stores/
-      journal.svelte.ts            # date-keyed journal text (plugin-store)
+      journal.svelte.ts           # date-keyed journal text (plugin-store)
       habits.svelte.ts            # habit definitions + check states
-      view.svelte.ts              # 'today' | 'monthly'
+      todos.svelte.ts             # daily todo items (plugin-store)
+      view.svelte.ts              # 'today' | 'monthly' | 'settings'
+      selected-date.svelte.ts     # currently viewed date key
     editor/
-      extensions.ts                # CM6 extension preset (history, search, etc.)
+      extensions.ts               # CM6 extension preset (history, search, etc.)
       theme.ts                    # CM6 theme — Newsreader, line-wrap, padding
   routes/
     +layout.ts                    # `export const ssr = false`
-    +layout.svelte                # Global font imports + layout shell
-    +page.svelte                   # Today view (default)
+    +layout.svelte                # Global font imports + layout shell (TitleBar + TopBar)
+    +page.svelte                  # Today view (habits, todos, daily note)
     monthly/
-      +page.svelte                # Monthly view (Phase 2 — stub only)
+      +page.svelte                # Analytics view (streaks, heatmap, stats)
+    settings/
+      +page.svelte                # Placeholder settings page
 src-tauri/
   src/lib.rs                      # Tauri commands if any (start minimal)
   tauri.conf.json
@@ -206,23 +221,25 @@ throughout components — reference `var(--ink)` etc.
 - Journal body — Newsreader, 17px / 1.7 / weight 400. Italic available for emphasis.
 - UI labels (habit names, switch) — Atkinson Hyperlegible, 14px, weight 400 (label)
   / 700 (active state).
-- Date header (e.g. "Saturday, June 27") — Newsreader italic, 13px, `ink-soft`.
+- Date header (e.g. "Tuesday, June 27") — Newsreader, 28px, weight 500, `ink`.
 
 ### Spacing
 
-- App padding: `1.5rem` on all sides.
-- Left/right split gap: `2rem` between journal pane and habit pane.
-- Habit checkbox rows: `0.75rem` vertical rhythm.
+- Top bar padding: `0.25rem 1rem`.
+- Page padding: `0 1.5rem 1.5rem`.
+- Cards row gap: `0.75rem` between habits and todo cards.
+- Cards padding: `1rem 1.25rem`, radius `14px`, background `--paper-subtle`.
+- Habit checkbox rows: `0.5rem` vertical rhythm.
 - Journal editor padding: `2rem 2.5rem` inside the `.cm-content` (see theme above).
 
-### Switch (Today/Monthly) — the only ornamented UI
+### Nav Pill (Yesterday/Today/Analytics) — the only ornamented UI
 
-- Pill shaped, full-radius, ~`9rem` wide, `2rem` tall.
-- Centered horizontally at top of the window, `1.5rem` from the top edge.
-- Left half label "Today", right half label "Monthly".
-- Active side: `ink` text on `#f3f4f6` (very light grey) background.
+- Pill shaped, full-radius, `14rem` wide, `2rem` tall.
+- Centered in the top bar between calendar icon (left) and settings gear (right).
+- Three segments: "Yesterday", "Today", "Analytics".
+- Active side: `ink` text on `--track` background.
   Inactive side: `ink-soft` text on transparent.
-- The track transitions in a single ~150ms ease slide.
+- The track transitions in a single ~220ms ease slide.
 - The pill itself has a `1px` `ink-faint` outline, no drop shadow.
   Do not make this a glossy Apple-style switch — keep it flat and quiet.
 
@@ -350,7 +367,7 @@ Record these so future-you and future-agents don't accidentally build them.
 
 - `src-tauri/tauri.conf.json` — only change when adding bundle config, window
   options, or new plugins. The 800x600 default window size will likely be
-  increased; pick `width: 1200, height: 800` when you do.
+  increased;   Current size is `width: 800, height: 1000`.
 - `svelte.config.js` — adapter-static + SPA fallback. Don't change the adapter.
 - `vite.config.js` — the port `1420 strict` is load-bearing for Tauri.
 - `src/routes/+layout.ts` — `ssr = false` is required for Tauri. Do not flip it.
@@ -360,7 +377,7 @@ Record these so future-you and future-agents don't accidentally build them.
 Short imperative summary, lowercase first word, no period:
 
 - `stand up codemirror editor with debounced autosave`
-- `add view switch pill with today/monthly toggle`
+- `add view switch pill with yesterday/today/analytics toggle`
 - `wire habit checkbox state to plugin-store`
 
 If a change touches both frontend and `src-tauri/`, prefix with `t:` or `s:`
