@@ -11,7 +11,7 @@
   import {
     initHabitsStore, isHabitsHydrated,
     habits, habitStreak, habitBestStreak,
-    habitCheckCount, habitCompletionRate, allChecksForDate,
+    habitCheckCount, habitCompletionRate, allChecksForDate, isChecked,
   } from "$lib/stores/habits.svelte";
   import { initTodosStore, isTodosHydrated } from "$lib/stores/todos.svelte";
 
@@ -43,7 +43,7 @@
   ));
 
   const heatmapCells = $derived(makeStripCells(364,
-    (dk) => { const { checked, total } = allChecksForDate(dk); return checked === 0 ? 0 : total === 0 ? 0 : checked === total ? 3 : Math.min(Math.floor((checked / total) * 2) + 1, 2); },
+    (dk) => { const { checked } = allChecksForDate(dk); return Math.min(checked, 10); },
     (dk, d) => { const { checked, total } = allChecksForDate(dk); return `${format(d, "EEEE, MMM d")}: ${checked}/${total} habits`; },
   ));
 
@@ -51,16 +51,15 @@
     id: h.id, label: h.label,
     streak: habitStreak(h.id), best: habitBestStreak(h.id),
     total: habitCheckCount(h.id), completionRate: habitCompletionRate(h.id, 30),
-    miniStripCells: makeStripCells(89,
-      (dk) => { const { checked } = allChecksForDate(dk); return checked > 0 ? 3 : 0; },
-      (dk, d) => `${format(d, "EEEE, MMM d")}: ${allChecksForDate(dk).checked > 0 ? "checked" : "missed"}`,
+    miniStripCells: makeStripCells(29,
+      (dk) => (isChecked(h.id, dk) ? 3 : 0),
+      (dk, d) => `${format(d, "EEEE, MMM d")}: ${isChecked(h.id, dk) ? "checked" : "missed"}`,
     ),
   })));
 </script>
 
 {#if ready && hydrated}
   <div class="analytics">
-    <h2 class="page-title">More</h2>
     <WritingSummary totalEntries={stats.totalEntries} currentStreak={stats.currentStreak}
       bestStreak={stats.bestStreak} thisMonth={stats.thisMonth} stripCells={writingStripCells} />
     <div class="section">
@@ -72,10 +71,12 @@
       {#if habitCards.length === 0}
         <p class="empty">Add a habit on the Today page to see analytics.</p>
       {:else}
-        {#each habitCards as card}
-          <HabitStatCard label={card.label} streak={card.streak} best={card.best}
-            total={card.total} completionRate={card.completionRate} miniStripCells={card.miniStripCells} />
-        {/each}
+        <div class="habit-grid">
+          {#each habitCards as card}
+            <HabitStatCard label={card.label} streak={card.streak} best={card.best}
+              total={card.total} completionRate={card.completionRate} miniStripCells={card.miniStripCells} />
+          {/each}
+        </div>
       {/if}
     </div>
   </div>
@@ -84,9 +85,21 @@
 {/if}
 
 <style>
-  .analytics { max-width: 46rem; margin: 0 auto; width: 100%; padding-bottom: 2rem; }
+  .analytics {
+    max-width: 46rem;
+    margin: 0 auto;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    padding-bottom: 2rem;
+  }
   .page-title { font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: 16px; font-weight: 400; color: var(--ink-soft); margin: 0 0 1.5rem 0; }
   .section { margin-bottom: 1.5rem; }
   .section-header { font-family: "Atkinson Hyperlegible", system-ui, sans-serif; font-size: 14px; font-weight: 700; color: var(--ink); letter-spacing: 0.02em; text-transform: uppercase; margin: 0 0 0.75rem 0; }
   .empty { font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: 15px; color: var(--ink-soft); margin: 0.5rem 0; }
+  .habit-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 0.875rem;
+  }
 </style>

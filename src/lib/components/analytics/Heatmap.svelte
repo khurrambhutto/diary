@@ -7,9 +7,9 @@
     cells: { dateKey: string; level: number; label: string }[];
   } = $props();
 
-  const cellSize = 12;
+  const cellSize = 9.5;
   const gap = 2;
-  const labelWidth = 16;
+  const labelWidth = 26;
 
   const cellMap = $derived.by(() => {
     const map = new Map<string, { level: number; label: string }>();
@@ -54,7 +54,7 @@
   const totalWidth = $derived(cols * (cellSize + gap) + labelWidth);
   const totalHeight = $derived(7 * (cellSize + gap));
 
-  const dayLabels = ["Mon", "", "Wed", "", "Fri", "", ""];
+  const dayLabels = ["Mon", "", "Wed", "", "Fri", "", "Sun"];
 
   const monthLabels = $derived.by(() => {
     const labels: { col: number; label: string }[] = [];
@@ -75,22 +75,29 @@
   });
 
   function fill(level: number): string {
-    if (level === 0) return "var(--paper-subtle)";
-    if (level === 1) return "var(--accent-soft)";
-    if (level === 2 || level === 3) return "var(--accent)";
-    return "var(--paper-subtle)";
+    if (level === 0) return "var(--line)";
+    if (level === 1) return "color-mix(in srgb, var(--accent) 20%, var(--paper-subtle))";
+    if (level === 2) return "color-mix(in srgb, var(--accent) 30%, var(--paper-subtle))";
+    if (level === 3) return "color-mix(in srgb, var(--accent) 40%, var(--paper-subtle))";
+    if (level === 4) return "color-mix(in srgb, var(--accent) 50%, var(--paper-subtle))";
+    if (level === 5) return "color-mix(in srgb, var(--accent) 60%, var(--paper-subtle))";
+    if (level === 6) return "color-mix(in srgb, var(--accent) 70%, var(--paper-subtle))";
+    if (level === 7) return "color-mix(in srgb, var(--accent) 80%, var(--paper-subtle))";
+    if (level === 8) return "color-mix(in srgb, var(--accent) 90%, var(--paper-subtle))";
+    if (level === 9) return "var(--accent)";
+    return "var(--accent-strong)";
   }
 
   function cellOpacity(level: number): string {
-    if (level === 2) return "0.5";
+    if (level === 0) return "0.5";
     return "1";
   }
 </script>
 
 <div class="heatmap-wrap">
   <svg
-    width={totalWidth}
-    height={totalHeight + 24}
+    viewBox="0 0 {totalWidth} {totalHeight + 24}"
+    style="width: 100%; height: auto; max-width: {totalWidth}px;"
     role="img"
     aria-label="Habit activity over the last year"
   >
@@ -99,8 +106,9 @@
         x={labelWidth + ml.col * (cellSize + gap)}
         y="10"
         font-family="Atkinson Hyperlegible, system-ui, sans-serif"
-        font-size="10"
-        fill="var(--ink-faint)"
+        font-size="9.5"
+        font-weight="600"
+        fill="var(--ink-soft)"
       >{ml.label}</text>
     {/each}
 
@@ -108,10 +116,12 @@
       {#if dl}
         <text
           x="0"
-          y={24 + ri * (cellSize + gap) + 10}
+          y={24 + ri * (cellSize + gap) + cellSize / 2}
+          dominant-baseline="central"
           font-family="Atkinson Hyperlegible, system-ui, sans-serif"
-          font-size="10"
-          fill="var(--ink-faint)"
+          font-size="9"
+          font-weight="600"
+          fill="var(--ink-soft)"
         >{dl}</text>
       {/if}
     {/each}
@@ -139,6 +149,13 @@
 
 <style>
   .heatmap-wrap {
-    overflow-x: auto;
+    overflow-x: hidden;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+  svg {
+    display: block;
+    margin: 0 auto;
   }
 </style>

@@ -9,25 +9,24 @@
     height?: number;
   } = $props();
 
-  const gap = 2;
+  const gap = 2.5;
   const totalWidth = $derived(cells.length * (cellWidth + gap));
 
   function fill(level: number): string {
-    if (level === 0) return "var(--paper-subtle)";
-    if (level === 1) return "var(--accent-soft)";
-    if (level === 2 || level === 3) return "var(--accent)";
-    return "var(--paper-subtle)";
+    if (level === 0) return "var(--line)";
+    if (level === 1) return "var(--accent-strong)";
+    return "var(--accent)";
   }
 
   function cellOpacity(level: number): string {
-    if (level === 2) return "0.5";
+    if (level === 0) return "0.6";
     return "1";
   }
 </script>
 
 <svg
-  width={totalWidth}
-  {height}
+  viewBox="0 0 {totalWidth} {height}"
+  style="width: 100%; height: auto;"
   role="img"
   aria-label="Activity mini-strip"
 >
@@ -39,7 +38,7 @@
         y="0"
         width={cellWidth}
         height={height}
-        rx="2"
+        rx="2.5"
         fill={fill(cell.level)}
         opacity={cellOpacity(cell.level)}
       />
