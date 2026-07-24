@@ -5,7 +5,7 @@
     <img src="/favicon.svg" alt="Diary App Icon" class="app-hero-icon" />
     <div class="about-details">
       <h3 class="app-name">Diary</h3>
-      <p class="app-version">v0.1.2</p>
+      <p class="app-version">v0.1.3</p>
       <p class="app-desc">A minimal, cozy desktop app for daily journaling and habit tracking.</p>
     </div>
   </div>

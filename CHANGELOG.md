@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.3 — 2026-07-24
+
+- New app icon branding across desktop app bundles, favicons, and settings
+- Today view design makeover: refined card hairlines, elevation, and live status badges
+- Apple Reminders style hollow ring checkboxes for todos
+- Improved habit row options button hover visibility and smooth input styling
+- Default window size set to 720×1000
+
 ## 0.1.2 — 2026-07-21
 
 - Fix window size to 800×1000 for a taller, book-like layout
