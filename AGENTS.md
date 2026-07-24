@@ -366,8 +366,7 @@ Record these so future-you and future-agents don't accidentally build them.
 ## Files to never edit casually
 
 - `src-tauri/tauri.conf.json` — only change when adding bundle config, window
-  options, or new plugins. The 800x600 default window size will likely be
-  increased;   Current size is `width: 800, height: 1000`.
+  options, or new plugins. Current size is `width: 720, height: 1000`.
 - `svelte.config.js` — adapter-static + SPA fallback. Don't change the adapter.
 - `vite.config.js` — the port `1420 strict` is load-bearing for Tauri.
 - `src/routes/+layout.ts` — `ssr = false` is required for Tauri. Do not flip it.

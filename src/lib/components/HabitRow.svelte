@@ -179,26 +179,28 @@
     border: none;
     padding: 0.25rem;
     cursor: pointer;
-    color: var(--ink-faint);
+    color: var(--ink-soft);
     opacity: 0;
     transform: translateX(4px);
     transition:
       opacity 150ms ease,
       transform 150ms cubic-bezier(0.34, 1.56, 0.64, 1),
-      color 150ms ease;
+      color 150ms ease,
+      background-color 150ms ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 4px;
+    border-radius: 6px;
   }
   .row:hover .options-btn,
   .row:focus-within .options-btn {
     opacity: 1;
+    color: var(--ink-soft);
     transform: translateX(0);
   }
   .options-btn:hover {
-    color: var(--accent);
-    background-color: var(--paper-subtle);
+    color: var(--ink);
+    background-color: var(--paper-raised);
   }
   .row:focus-within .box {
     outline: none;
