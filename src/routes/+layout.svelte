@@ -74,7 +74,7 @@
     <main class="flex-1 flex flex-col min-h-0" style="padding: 0;">
       <TopBar />
 
-      <div class="page-surface" style="padding: 0 0.5rem 0.5rem;">
+      <div class="page-surface" style="padding: 0 0.375rem 0.375rem;">
         {@render children()}
       </div>
     </main>
@@ -86,7 +86,7 @@
     height: 100vh;
     width: 100vw;
     background: transparent;
-    padding: 0.375rem;
+    padding: 0.25rem;
     box-sizing: border-box;
     transition: padding 120ms ease;
   }

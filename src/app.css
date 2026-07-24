@@ -28,6 +28,7 @@
   /* dividers, hairlines */
   --line: #e5e5ea;
   --line-strong: #d1d1d6;
+  --paper-line: #e5e5ea;
 
   /* switch track — the only ornamented UI */
   --track: #f3f4f6;
@@ -67,6 +68,7 @@
 
     --line: #38383a;
     --line-strong: #48484a;
+    --paper-line: #38383a;
 
     --track: #3a3a3c;
 
@@ -99,5 +101,5 @@ body {
 
 :focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px var(--accent);
+  box-shadow: 0 0 0 2px var(--line-strong);
 }

@@ -36,8 +36,14 @@
       <button type="button" class="light minimize" aria-label="Minimize" onclick={minimize}></button>
       <button type="button" class="light maximize" aria-label="Maximize" onclick={toggleMaximize}></button>
     </div>
+    <div class="brand mac-brand" data-tauri-drag-region>
+      <span class="app-title">Diary</span>
+    </div>
     <div class="spacer" data-tauri-drag-region></div>
   {:else}
+    <div class="brand" data-tauri-drag-region>
+      <span class="app-title">Diary</span>
+    </div>
     <div class="spacer" data-tauri-drag-region></div>
     <div class="lights" data-tauri-drag-region>
       <button type="button" class="light minimize" aria-label="Minimize" onclick={minimize}></button>
@@ -120,5 +126,24 @@
   .win .light.minimize:hover,
   .win .light.maximize:hover {
     background-color: var(--ink-soft);
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    user-select: none;
+    pointer-events: none;
+  }
+  .mac-brand {
+    margin-left: 0.5rem;
+  }
+  .app-title {
+    font-family: "Atkinson Hyperlegible", system-ui, sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
   }
 </style>

@@ -1,13 +1,11 @@
 <script lang="ts">
-  let {
-    cells,
-    cellWidth = 6,
-    height = 14,
-  }: {
+  type MiniStripProps = {
     cells: { dateKey: string; level: number; label: string }[];
     cellWidth?: number;
     height?: number;
-  } = $props();
+  };
+
+  let { cells, cellWidth = 6, height = 14 }: MiniStripProps = $props();
 
   const gap = 2.5;
   const totalWidth = $derived(cells.length * (cellWidth + gap));

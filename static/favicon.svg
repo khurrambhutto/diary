@@ -1,0 +1,30 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" role="img">
+  <title>Diary app icon</title>
+  <desc>A cream journal page with a purple bookmark ribbon and a checkmark badge, on a dark charcoal squircle background.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#232323"/>
+      <stop offset="100%" stop-color="#191919"/>
+    </linearGradient>
+  </defs>
+
+  <!-- background squircle -->
+  <rect x="0" y="0" width="1024" height="1024" rx="228" fill="url(#bg)"/>
+
+  <!-- book / journal page -->
+  <rect x="272" y="232" width="480" height="560" rx="28" fill="#f5f0e6"/>
+
+  <!-- journal text lines -->
+  <rect x="328" y="400" width="240" height="14" rx="7" fill="#dcd2bd"/>
+  <rect x="328" y="452" width="200" height="14" rx="7" fill="#dcd2bd"/>
+  <rect x="328" y="504" width="220" height="14" rx="7" fill="#dcd2bd"/>
+  <rect x="328" y="556" width="150" height="14" rx="7" fill="#dcd2bd"/>
+
+  <!-- bookmark ribbon -->
+  <polygon points="592,180 662,180 662,340 627,382 592,340" fill="#8b7dbe"/>
+
+  <!-- checkmark badge -->
+  <circle cx="700" cy="700" r="104" fill="#191919"/>
+  <circle cx="700" cy="700" r="90" fill="#8b7dbe"/>
+  <path d="M655 700 L688 733 L748 662" stroke="#ffffff" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>

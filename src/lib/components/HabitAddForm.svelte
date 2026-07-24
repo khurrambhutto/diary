@@ -18,61 +18,53 @@
 </script>
 
 <form class="form" onsubmit={handleSubmit}>
-  <input
-    type="text"
-    class="input"
-    placeholder="New habit…"
-    bind:value={text}
-    onkeydown={handleKeydown}
-  />
-  <button type="submit" class="btn" aria-label="Add habit" disabled={!text.trim()}>
-    <svg viewBox="0 0 20 20" width="16" height="16" fill="currentColor">
-      <path d="M10 3a1 1 0 0 1 1 1v5h5a1 1 0 1 1 0 2h-5v5a1 1 0 1 1-2 0v-5H4a1 1 0 1 1 0-2h5V4a1 1 0 0 1 1-1z" />
-    </svg>
-  </button>
+  <div class="input-capsule">
+    <input
+      type="text"
+      class="input"
+      placeholder="New habit…"
+      bind:value={text}
+      onkeydown={handleKeydown}
+    />
+  </div>
 </form>
 
 <style>
   .form {
+    margin-top: 0.25rem;
+  }
+  .input-capsule {
     display: flex;
-    gap: 0.375rem;
     align-items: center;
+    gap: 0.375rem;
+    background: var(--paper);
+    border: 1px solid var(--paper-line);
+    border-radius: 8px;
+    padding: 0.25rem 0.75rem;
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+  }
+  .input-capsule:focus-within {
+    border-color: var(--line-strong);
   }
   .input {
     flex: 1;
     border: none;
-    border-bottom: 1px solid var(--line);
-    padding: 0.375rem 0;
+    padding: 0.125rem 0;
     font-family: "Atkinson Hyperlegible", system-ui, sans-serif;
     font-size: 13px;
     color: var(--ink);
     background: transparent;
     outline: none;
-    transition: border-color 150ms ease;
+    box-shadow: none;
+    min-width: 0;
+  }
+  .input:focus,
+  .input:focus-visible {
+    outline: none;
+    box-shadow: none;
   }
   .input::placeholder {
-    color: var(--ink-faint);
-  }
-  .input:focus {
-    border-color: var(--accent);
-  }
-  .btn {
-    flex-shrink: 0;
-    background: none;
-    border: none;
-    padding: 0.25rem;
-    cursor: pointer;
     color: var(--ink-soft);
-    transition: color 150ms ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .btn:hover:not(:disabled) {
-    color: var(--accent);
-  }
-  .btn:disabled {
-    opacity: 0.3;
-    cursor: default;
+    opacity: 0.65;
   }
 </style>

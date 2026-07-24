@@ -13,10 +13,12 @@
   import {
     initHabitsStore,
     isHabitsHydrated,
+    allChecksForDate,
   } from "$lib/stores/habits.svelte";
   import {
     initTodosStore,
     isTodosHydrated,
+    todoItems,
   } from "$lib/stores/todos.svelte";
   import {
     initSelectedDate,
@@ -45,6 +47,9 @@
   const key = $derived(selectedKey());
   const dateKey = $derived(key);
   const readonly = $derived(!isViewingToday());
+
+  const habitStats = $derived(allChecksForDate(key));
+  const todosCount = $derived(todoItems().length);
 
   const hydrated = $derived(
     isJournalHydrated() && isHabitsHydrated() && isTodosHydrated()
@@ -79,18 +84,28 @@
 
         <div class="panels-row">
           <section class="card habits-card">
-            <h3 class="card-title">Habits</h3>
+            <div class="card-header">
+              <h3 class="card-title">Habits</h3>
+              {#if habitStats.total > 0}
+                <span class="card-badge">{habitStats.checked}/{habitStats.total} done</span>
+              {/if}
+            </div>
             <HabitList dateKey={key} />
           </section>
 
           <section class="card todo-card">
-            <h3 class="card-title">To Do</h3>
+            <div class="card-header">
+              <h3 class="card-title">To Do</h3>
+              {#if todosCount > 0}
+                <span class="card-badge">{todosCount} {todosCount === 1 ? 'task' : 'tasks'}</span>
+              {/if}
+            </div>
             <TodoList />
           </section>
         </div>
 
         <section class="card note-card">
-          <div class="note-header">
+          <div class="card-header note-header">
             <h3 class="card-title">Daily Note</h3>
           </div>
           <div class="editor-wrap">
@@ -116,43 +131,65 @@
     inset: 0;
     display: flex;
     flex-direction: column;
-    gap: 0.375rem;
+    gap: 0.5rem;
   }
   .panels-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 0.375rem;
+    gap: 0.5rem;
     flex-shrink: 0;
   }
   .card {
     background: var(--paper-subtle);
-    border-radius: 10px;
-    padding: 0.625rem 0.875rem;
+    border: 1px solid var(--paper-line);
+    border-radius: 14px;
+    padding: 0.75rem 1rem;
     display: flex;
     flex-direction: column;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03), 0 4px 12px rgba(0, 0, 0, 0.02);
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
   }
   .card-title {
-    margin: 0 0 0.5rem;
+    margin: 0;
     font-family: "Atkinson Hyperlegible", system-ui, sans-serif;
-    font-size: 13px;
+    font-size: 11px;
     font-weight: 700;
-    color: var(--ink);
-    letter-spacing: 0.02em;
+    color: var(--ink-soft);
+    letter-spacing: 0.05em;
     text-transform: uppercase;
+  }
+  .card-badge {
+    font-family: "Atkinson Hyperlegible", system-ui, sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    background: var(--paper);
+    border: 1px solid var(--paper-line);
+    border-radius: 999px;
+    padding: 1px 7px;
+    font-variant-numeric: tabular-nums;
   }
   .note-card {
     flex: 1 1 auto;
     min-height: 0;
+    padding: 0.5rem 0.5rem 0.5rem;
   }
   .note-header {
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.375rem;
     flex-shrink: 0;
   }
   .editor-wrap {
     flex: 1 1 auto;
     min-height: 0;
     background: var(--paper);
-    border-radius: 8px;
+    border: 1px solid var(--paper-line);
+    border-radius: 10px;
     overflow: hidden;
   }
 </style>

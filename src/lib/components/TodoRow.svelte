@@ -34,8 +34,8 @@
     aria-label="Complete task"
     onclick={complete}
   >
-    <svg viewBox="0 0 20 20" width="20" height="20" class="check" class:completing>
-      <path d="M6 10l3 3 5-5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+    <svg viewBox="0 0 20 20" width="18" height="18" class="check" class:completing>
+      <path d="M5.5 10l3 3 6-6" stroke="#ffffff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" />
     </svg>
   </button>
   <span class="text">{text}</span>
@@ -51,12 +51,18 @@
   .row {
     display: flex;
     align-items: center;
-    cursor: default;
+    cursor: pointer;
     user-select: none;
     gap: 0.625rem;
-    transition: opacity 180ms ease;
+    padding: 0.35rem 0.5rem;
+    margin: 0 -0.5rem;
+    border-radius: 8px;
+    transition: opacity 180ms ease, background-color 140ms ease;
     width: 100%;
     min-width: 0;
+  }
+  .row:hover {
+    background-color: color-mix(in srgb, var(--ink) 4%, transparent);
   }
   .row.completing {
     opacity: 0.5;
@@ -64,54 +70,52 @@
   .circle {
     position: relative;
     flex-shrink: 0;
-    background-color: var(--ink-faint);
-    border: none;
+    background-color: transparent;
+    border: 1.5px solid var(--ink-soft);
     padding: 0;
     cursor: pointer;
-    color: var(--ink);
+    color: #ffffff;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
     outline: none;
     -webkit-appearance: none;
     appearance: none;
     transition:
-      background-color 150ms ease,
-      color 150ms ease,
-      transform 120ms cubic-bezier(0.34, 1.56, 0.64, 1);
+      background-color 160ms ease,
+      border-color 160ms ease,
+      transform 180ms cubic-bezier(0.34, 1.56, 0.64, 1);
   }
-  .circle:hover {
-    background-color: var(--accent);
+  .row:hover .circle:not(.completing) {
+    border-color: var(--accent);
+    background-color: color-mix(in srgb, var(--accent) 12%, transparent);
   }
   .circle:focus-visible {
     outline: none;
-    box-shadow: none;
+    box-shadow: 0 0 0 2px var(--accent);
   }
   .circle:active {
     transform: scale(0.92);
   }
   .circle.completing {
     background-color: var(--accent);
-    transform: scale(1.05);
+    border-color: var(--accent);
+    transform: scale(1.08);
   }
   .check {
     position: absolute;
-    top: 0;
-    left: 0;
+    top: -1px;
+    left: -1px;
     opacity: 0;
-    transform: scale(0.5) rotate(-12deg);
+    transform: scale(0.5) rotate(-10deg);
     transition:
       opacity 160ms ease,
-      transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
+      transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
   }
   .check.completing {
-    opacity: 1;
-    transform: scale(1) rotate(0deg);
-  }
-  .circle:hover .check {
     opacity: 1;
     transform: scale(1) rotate(0deg);
   }
@@ -120,7 +124,7 @@
     font-size: 14px;
     color: var(--ink);
     line-height: 1.4;
-    transition: color 150ms ease;
+    transition: color 150ms ease, text-decoration 150ms ease;
     min-width: 0;
     flex: 1 1 auto;
     overflow: hidden;
@@ -130,6 +134,7 @@
   .row.completing .text {
     color: var(--ink-soft);
     text-decoration: line-through;
+    text-decoration-color: var(--ink-soft);
   }
   .age {
     flex-shrink: 0;
@@ -137,13 +142,14 @@
     align-items: center;
     gap: 0.2rem;
     margin-left: auto;
-    padding: 0.1rem 0.35rem 0.1rem 0.3rem;
+    padding: 0.1rem 0.4rem;
     border-radius: 9999px;
-    background: var(--paper);
+    background: color-mix(in srgb, var(--ink) 6%, transparent);
+    border: 1px solid var(--paper-line);
     color: var(--ink-soft);
     font-family: "Atkinson Hyperlegible", system-ui, sans-serif;
     font-size: 11px;
-    font-weight: 700;
+    font-weight: 600;
     line-height: 1;
     letter-spacing: 0.01em;
   }

@@ -49,13 +49,15 @@
   </div>
 
   <form class="add-form" onsubmit={handleSubmit}>
-    <input
-      type="text"
-      class="add-input"
-      placeholder="Add a task…"
-      bind:value={text}
-      onkeydown={handleKeydown}
-    />
+    <div class="input-capsule">
+      <input
+        type="text"
+        class="add-input"
+        placeholder="Add a task…"
+        bind:value={text}
+        onkeydown={handleKeydown}
+      />
+    </div>
   </form>
 </div>
 
@@ -68,7 +70,7 @@
   .list {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.25rem;
   }
   .row-wrap {
     display: flex;
@@ -79,26 +81,44 @@
     font-size: 13px;
     color: var(--ink-soft);
     font-style: italic;
+    padding: 0.25rem 0;
   }
   .add-form {
     display: flex;
+    margin-top: 0.25rem;
+  }
+  .input-capsule {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    background: var(--paper);
+    border: 1px solid var(--paper-line);
+    border-radius: 8px;
+    padding: 0.25rem 0.75rem;
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+  }
+  .input-capsule:focus-within {
+    border-color: var(--line-strong);
   }
   .add-input {
     flex: 1;
     border: none;
-    border-bottom: 1px solid var(--line);
-    padding: 0.375rem 0;
+    padding: 0.125rem 0;
     font-family: "Atkinson Hyperlegible", system-ui, sans-serif;
-    font-size: 14px;
+    font-size: 13px;
     color: var(--ink);
     background: transparent;
     outline: none;
-    transition: border-color 150ms ease;
+    box-shadow: none;
+    min-width: 0;
+  }
+  .add-input:focus,
+  .add-input:focus-visible {
+    outline: none;
+    box-shadow: none;
   }
   .add-input::placeholder {
-    color: var(--ink-faint);
-  }
-  .add-input:focus {
-    border-color: var(--accent);
+    color: var(--ink-soft);
+    opacity: 0.65;
   }
 </style>

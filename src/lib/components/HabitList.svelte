@@ -53,7 +53,7 @@
   .list {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.25rem;
   }
   .row-wrap {
     display: flex;
@@ -64,5 +64,6 @@
     font-size: 13px;
     color: var(--ink-soft);
     font-style: italic;
+    padding: 0.25rem 0;
   }
 </style>

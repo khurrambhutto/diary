@@ -47,14 +47,14 @@
 <label class="row">
   <div class="box" class:accent={checked} aria-hidden="true">
     {#if checked}
-      <Check size={14} color="#ffffff" strokeWidth={2.5} />
+      <Check size={13} color="#ffffff" strokeWidth={3} />
     {/if}
   </div>
   <input type="checkbox" checked={checked} onchange={onToggle} />
   {#if editing}
     <HabitLabelEdit value={label} onCommit={commitRename} onCancel={cancelRename} />
   {:else}
-    <span class="label">{label}</span>
+    <span class="label" class:checked>{label}</span>
   {/if}
   {#if streak > 0}
     <span
@@ -83,14 +83,14 @@
     cursor: pointer;
     user-select: none;
     gap: 0;
-    padding: 0.25rem 0.5rem;
+    padding: 0.35rem 0.5rem;
     margin: 0 -0.5rem;
-    border-radius: 6px;
-    transition: background-color 120ms ease;
+    border-radius: 8px;
+    transition: background-color 140ms ease;
     width: 100%;
     min-width: 0;
   }
-  .row:hover { background-color: var(--paper-subtle); }
+  .row:hover { background-color: color-mix(in srgb, var(--ink) 4%, transparent); }
   input[type="checkbox"] {
     position: absolute;
     width: 1px;
@@ -104,23 +104,27 @@
   }
   .box {
     flex-shrink: 0;
-    width: 1.25rem;
-    height: 1.25rem;
-    border: 1px solid var(--ink-faint);
-    border-radius: 4px;
+    width: 1.125rem;
+    height: 1.125rem;
+    border: 1.5px solid var(--ink-faint);
+    border-radius: 5px;
     display: flex;
     align-items: center;
     justify-content: center;
-    transform: scale(1);
+    background: transparent;
     transition:
-      background-color 150ms ease,
-      border-color 150ms ease,
+      background-color 160ms ease,
+      border-color 160ms ease,
       transform 180ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .row:hover .box:not(.accent) {
+    border-color: var(--accent);
+    background-color: color-mix(in srgb, var(--accent) 10%, transparent);
   }
   .box.accent {
     background-color: var(--accent);
     border-color: var(--accent);
-    transform: scale(1.12);
+    transform: scale(1.06);
   }
   .label {
     margin-left: 0.625rem;
@@ -133,6 +137,12 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    transition: color 180ms ease, text-decoration 180ms ease;
+  }
+  .label.checked {
+    color: var(--ink-soft);
+    text-decoration: line-through;
+    text-decoration-color: color-mix(in srgb, var(--accent) 50%, transparent);
   }
   .streak {
     flex-shrink: 0;
@@ -140,10 +150,11 @@
     align-items: center;
     gap: 0.2rem;
     margin-left: 0.35rem;
-    padding: 0.1rem 0.35rem 0.1rem 0.3rem;
+    padding: 0.1rem 0.4rem;
     border-radius: 9999px;
     background: var(--paper);
     color: var(--ink-soft);
+    border: 1px solid var(--paper-line);
     font-family: "Atkinson Hyperlegible", system-ui, sans-serif;
     font-size: 11px;
     font-weight: 700;
@@ -151,7 +162,7 @@
     letter-spacing: 0.01em;
   }
   .streak-emoji {
-    font-size: 13px;
+    font-size: 12px;
     line-height: 1;
   }
   .streak-n {
@@ -191,6 +202,6 @@
   }
   .row:focus-within .box {
     outline: none;
-    box-shadow: 0 0 0 2px var(--accent);
+    box-shadow: 0 0 0 2px var(--line-strong);
   }
 </style>

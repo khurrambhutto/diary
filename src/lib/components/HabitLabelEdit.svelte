@@ -69,9 +69,13 @@
     color: var(--ink);
     background: transparent;
     outline: none;
+    box-shadow: none;
     min-width: 0;
   }
-  .edit-input:focus {
-    border-color: var(--accent);
+  .edit-input:focus,
+  .edit-input:focus-visible {
+    border-color: var(--line-strong);
+    outline: none;
+    box-shadow: none;
   }
 </style>
