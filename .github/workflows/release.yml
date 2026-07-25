@@ -65,67 +65,57 @@ jobs:
           merge-multiple: true
 
       - name: Generate update.json
+        env:
+          TAG_NAME: ${{ github.ref_name }}
         shell: bash
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
-          TAG_NAME="${{ github.ref_name }}"
+          set -euo pipefail
+          VERSION="${TAG_NAME#v}"
           BASE_URL="https://github.com/khurrambhutto/diary/releases/download/${TAG_NAME}"
 
-          APPIMAGE_FILE=$(ls *.AppImage 2>/dev/null | head -1)
-          LINUX_URL=""; LINUX_SIG=""
-          [ -n "$APPIMAGE_FILE" ] && LINUX_URL="${BASE_URL}/${APPIMAGE_FILE}"
-          SIG_FILE=$(ls *.AppImage.sig 2>/dev/null | head -1)
-          [ -n "$SIG_FILE" ] && LINUX_SIG=$(cat "$SIG_FILE")
+          echo '{' > update.json
+          echo '  "version": "'"$VERSION"'",' >> update.json
+          echo '  "notes": "See the release for details.",' >> update.json
+          echo '  "pub_date": "'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'",' >> update.json
+          echo '  "platforms": {' >> update.json
 
-          TARGZ_FILE=$(ls *.app.tar.gz 2>/dev/null | head -1)
-          DARWIN_URL=""; DARWIN_SIG=""
-          [ -n "$TARGZ_FILE" ] && DARWIN_URL="${BASE_URL}/${TARGZ_FILE}"
-          SIG_TARGZ=$(ls *.app.tar.gz.sig 2>/dev/null | head -1)
-          [ -n "$SIG_TARGZ" ] && DARWIN_SIG=$(cat "$SIG_TARGZ")
-
-          MSI_FILE=$(ls *.msi 2>/dev/null | head -1)
-          WIN_URL=""; WIN_SIG=""
-          [ -n "$MSI_FILE" ] && WIN_URL="${BASE_URL}/${MSI_FILE}"
-          MSI_SIG_FILE=$(ls *.msi.sig 2>/dev/null | head -1)
-          [ -n "$MSI_SIG_FILE" ] && WIN_SIG=$(cat "$MSI_SIG_FILE")
-          if [ -z "$WIN_SIG" ]; then
-            SETUP_SIG_FILE=$(ls *.setup.exe.sig 2>/dev/null | head -1)
-            [ -n "$SETUP_SIG_FILE" ] && WIN_SIG=$(cat "$SETUP_SIG_FILE")
+          APPIMAGE_FILE="$(ls *.AppImage 2>/dev/null | head -1)"
+          if [ -n "$APPIMAGE_FILE" ]; then
+            SIG="$(cat "${APPIMAGE_FILE}.sig" 2>/dev/null || echo '')"
+            echo '    "linux-x86_64": {' >> update.json
+            echo '      "signature": "'"$SIG"'",' >> update.json
+            echo '      "url": "'"$BASE_URL"'/'"$APPIMAGE_FILE"'"' >> update.json
+            echo '    },' >> update.json
           fi
 
-          jq -n \
-            --arg version "$VERSION" \
-            --arg notes "See the release for details." \
-            --arg pub_date "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-            --arg linux_url "$LINUX_URL" \
-            --arg linux_sig "$LINUX_SIG" \
-            --arg darwin_url "$DARWIN_URL" \
-            --arg darwin_sig "$DARWIN_SIG" \
-            --arg win_url "$WIN_URL" \
-            --arg win_sig "$WIN_SIG" \
-            '{
-              version: $version,
-              notes: $notes,
-              pub_date: $pub_date,
-              platforms: {
-                "linux-x86_64": {
-                  signature: $linux_sig,
-                  url: $linux_url
-                },
-                "darwin-x86_64": {
-                  signature: $darwin_sig,
-                  url: $darwin_url
-                },
-                "darwin-aarch64": {
-                  signature: $darwin_sig,
-                  url: $darwin_url
-                },
-                "windows-x86_64": {
-                  signature: $win_sig,
-                  url: $win_url
-                }
-              }
-            }' > update.json
+          TARGZ_FILE="$(ls *.app.tar.gz 2>/dev/null | head -1)"
+          if [ -n "$TARGZ_FILE" ]; then
+            SIG="$(cat "${TARGZ_FILE}.sig" 2>/dev/null || echo '')"
+            echo '    "darwin-x86_64": {' >> update.json
+            echo '      "signature": "'"$SIG"'",' >> update.json
+            echo '      "url": "'"$BASE_URL"'/'"$TARGZ_FILE"'"' >> update.json
+            echo '    },' >> update.json
+            echo '    "darwin-aarch64": {' >> update.json
+            echo '      "signature": "'"$SIG"'",' >> update.json
+            echo '      "url": "'"$BASE_URL"'/'"$TARGZ_FILE"'"' >> update.json
+            echo '    },' >> update.json
+          fi
+
+          MSI_FILE="$(ls *.msi 2>/dev/null | head -1)"
+          SETUP_FILE="$(ls *.setup.exe 2>/dev/null | head -1)"
+          if [ -n "$MSI_FILE" ]; then
+            SIG="$(cat "${MSI_FILE}.sig" 2>/dev/null || echo '')"
+            if [ -z "$SIG" ] && [ -n "$SETUP_FILE" ]; then
+              SIG="$(cat "${SETUP_FILE}.sig" 2>/dev/null || echo '')"
+            fi
+            echo '    "windows-x86_64": {' >> update.json
+            echo '      "signature": "'"$SIG"'",' >> update.json
+            echo '      "url": "'"$BASE_URL"'/'"$MSI_FILE"'"' >> update.json
+            echo '    }' >> update.json
+          fi
+
+          echo '  }' >> update.json
+          echo '}' >> update.json
 
           echo "Generated update.json:"
           cat update.json
