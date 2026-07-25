@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.4 — 2026-07-25
+
+- Add auto-update via Tauri updater plugin (native update dialog on startup)
+- Built-in update checking: silent on launch, manual button in Settings
+- Signing key pair generated for secure update artifact verification
+- Release workflow now signs builds and publishes update.json manifest
+- Add @tauri-apps/plugin-updater and @tauri-apps/plugin-process dependencies
+
 ## 0.1.3 — 2026-07-24
 
 - New app icon branding across desktop app bundles, favicons, and settings
