@@ -10,6 +10,7 @@
   import { onMount } from "svelte";
   import { onNavigate } from "$app/navigation";
   import { getCurrentWindow } from "@tauri-apps/api/window";
+  import { check as checkUpdate } from "@tauri-apps/plugin-updater";
   import TitleBar from "$lib/components/TitleBar.svelte";
   import TopBar from "$lib/components/TopBar.svelte";
   import { setViewFromPath } from "$lib/stores/view.svelte";
@@ -62,6 +63,14 @@
     return () => {
       unlisten?.();
     };
+  });
+
+  // Silent update check on startup — the built-in dialog (dialog: true in config)
+  // will handle the UI if an update is available.
+  onMount(() => {
+    checkUpdate().catch(() => {
+      // Silently ignore errors (no network, no update server, etc.)
+    });
   });
 
   let { children } = $props();

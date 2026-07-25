@@ -8,6 +8,10 @@ on:
 permissions:
   contents: write
 
+env:
+  TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.UPDATE_PRIVATE_KEY }}
+  TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ''
+
 jobs:
   build:
     strategy:
@@ -60,6 +64,75 @@ jobs:
           pattern: diary-*
           merge-multiple: true
 
+      - name: Generate update.json
+        shell: bash
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          TAG_NAME="${{ github.ref_name }}"
+
+          # Linux
+          LINUX_SIG=""
+          LINUX_URL=""
+          APPIMAGE_FILE=$(ls *.AppImage 2>/dev/null | head -1)
+          SIG_FILE=$(ls *.AppImage.sig 2>/dev/null | head -1)
+          if [ -n "$APPIMAGE_FILE" ]; then
+            LINUX_URL="https://github.com/khurrambhutto/diary/releases/download/${TAG_NAME}/${APPIMAGE_FILE}"
+            [ -n "$SIG_FILE" ] && LINUX_SIG=$(cat "$SIG_FILE")
+          fi
+
+          # macOS x86_64
+          DARWIN_X64_SIG=""
+          DARWIN_X64_URL=""
+          TARGZ_FILE=$(ls *.app.tar.gz 2>/dev/null | head -1)
+          SIG_TARGZ=$(ls *.app.tar.gz.sig 2>/dev/null | head -1)
+          if [ -n "$TARGZ_FILE" ]; then
+            DARWIN_X64_URL="https://github.com/khurrambhutto/diary/releases/download/${TAG_NAME}/${TARGZ_FILE}"
+            [ -n "$SIG_TARGZ" ] && DARWIN_X64_SIG=$(cat "$SIG_TARGZ")
+          fi
+
+          # macOS aarch64 (same tar.gz for universal builds, but keep separate)
+          DARWIN_ARM64_SIG="$DARWIN_X64_SIG"
+          DARWIN_ARM64_URL="$DARWIN_X64_URL"
+
+          # Windows
+          WIN_SIG=""
+          WIN_URL=""
+          MSI_FILE=$(ls *.msi 2>/dev/null | head -1)
+          MSI_SIG=$(ls *.msi.sig 2>/dev/null | head -1)
+          if [ -n "$MSI_FILE" ]; then
+            WIN_URL="https://github.com/khurrambhutto/diary/releases/download/${TAG_NAME}/${MSI_FILE}"
+            [ -n "$MSI_SIG" ] && WIN_SIG=$(cat "$MSI_SIG")
+          fi
+
+          cat > update.json << EOF
+          {
+            "version": "${VERSION}",
+            "notes": "See the release for details.",
+            "pub_date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "platforms": {
+              "linux-x86_64": {
+                "signature": "${LINUX_SIG}",
+                "url": "${LINUX_URL}"
+              },
+              "darwin-x86_64": {
+                "signature": "${DARWIN_X64_SIG}",
+                "url": "${DARWIN_X64_URL}"
+              },
+              "darwin-aarch64": {
+                "signature": "${DARWIN_ARM64_SIG}",
+                "url": "${DARWIN_ARM64_URL}"
+              },
+              "windows-x86_64": {
+                "signature": "${WIN_SIG}",
+                "url": "${WIN_URL}"
+              }
+            }
+          }
+          EOF
+
+          echo "Generated update.json:"
+          cat update.json
+
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
@@ -68,11 +141,21 @@ jobs:
             ## Diary ${{ github.ref_name }}
 
             See the assets below to download the build for your platform.
-          draft: true
+          draft: false
           prerelease: false
           files: |
             **/*.deb
             **/*.AppImage
+            **/*.AppImage.sig
+            **/*.app.tar.gz
+            **/*.app.tar.gz.sig
             **/*.dmg
             **/*.msi
-            **/*.zip
+            **/*.msi.sig
+            **/*.msi.zip
+            **/*.msi.zip.sig
+            **/*.setup.exe
+            **/*.setup.exe.sig
+            **/*.nsis.zip
+            **/*.nsis.zip.sig
+            update.json
