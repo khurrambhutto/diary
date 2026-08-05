@@ -79,38 +79,41 @@ jobs:
           echo '  "pub_date": "'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'",' >> update.json
           echo '  "platforms": {' >> update.json
 
-          APPIMAGE_FILE="$(ls *.AppImage 2>/dev/null | head -1)"
+          APPIMAGE_FILE="$(find . -type f -name '*.AppImage' -print -quit)"
           if [ -n "$APPIMAGE_FILE" ]; then
+            APPIMAGE_NAME="$(basename "$APPIMAGE_FILE")"
             SIG="$(cat "${APPIMAGE_FILE}.sig" 2>/dev/null || echo '')"
             echo '    "linux-x86_64": {' >> update.json
             echo '      "signature": "'"$SIG"'",' >> update.json
-            echo '      "url": "'"$BASE_URL"'/'"$APPIMAGE_FILE"'"' >> update.json
+            echo '      "url": "'"$BASE_URL"'/'"$APPIMAGE_NAME"'"' >> update.json
             echo '    },' >> update.json
           fi
 
-          TARGZ_FILE="$(ls *.app.tar.gz 2>/dev/null | head -1)"
+          TARGZ_FILE="$(find . -type f -name '*.app.tar.gz' -print -quit)"
           if [ -n "$TARGZ_FILE" ]; then
+            TARGZ_NAME="$(basename "$TARGZ_FILE")"
             SIG="$(cat "${TARGZ_FILE}.sig" 2>/dev/null || echo '')"
             echo '    "darwin-x86_64": {' >> update.json
             echo '      "signature": "'"$SIG"'",' >> update.json
-            echo '      "url": "'"$BASE_URL"'/'"$TARGZ_FILE"'"' >> update.json
+            echo '      "url": "'"$BASE_URL"'/'"$TARGZ_NAME"'"' >> update.json
             echo '    },' >> update.json
             echo '    "darwin-aarch64": {' >> update.json
             echo '      "signature": "'"$SIG"'",' >> update.json
-            echo '      "url": "'"$BASE_URL"'/'"$TARGZ_FILE"'"' >> update.json
+            echo '      "url": "'"$BASE_URL"'/'"$TARGZ_NAME"'"' >> update.json
             echo '    },' >> update.json
           fi
 
-          MSI_FILE="$(ls *.msi 2>/dev/null | head -1)"
-          SETUP_FILE="$(ls *.setup.exe 2>/dev/null | head -1)"
+          MSI_FILE="$(find . -type f -name '*.msi' -print -quit)"
+          SETUP_FILE="$(find . -type f -name '*.setup.exe' -print -quit)"
           if [ -n "$MSI_FILE" ]; then
+            MSI_NAME="$(basename "$MSI_FILE")"
             SIG="$(cat "${MSI_FILE}.sig" 2>/dev/null || echo '')"
             if [ -z "$SIG" ] && [ -n "$SETUP_FILE" ]; then
               SIG="$(cat "${SETUP_FILE}.sig" 2>/dev/null || echo '')"
             fi
             echo '    "windows-x86_64": {' >> update.json
             echo '      "signature": "'"$SIG"'",' >> update.json
-            echo '      "url": "'"$BASE_URL"'/'"$MSI_FILE"'"' >> update.json
+            echo '      "url": "'"$BASE_URL"'/'"$MSI_NAME"'"' >> update.json
             echo '    }' >> update.json
           fi
 
