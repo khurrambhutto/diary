@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.5 — 2026-08-05
+
+- Todo and habit labels wrap to a second line instead of overflowing
+- Compact centered writing bars on the analytics page
+- Traffic-light window control colors now appear on hover only
+
 ## 0.1.4 — 2026-07-25
 
 - Add auto-update via Tauri updater plugin (native update dialog on startup)
