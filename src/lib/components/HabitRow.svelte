@@ -79,7 +79,7 @@
 <style>
   .row {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     cursor: pointer;
     user-select: none;
     gap: 0;
@@ -112,6 +112,7 @@
     align-items: center;
     justify-content: center;
     background: transparent;
+    margin-top: 0.1rem;
     transition:
       background-color 160ms ease,
       border-color 160ms ease,
@@ -134,9 +135,7 @@
     color: var(--ink);
     flex: 1;
     min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
     transition: color 180ms ease, text-decoration 180ms ease;
   }
   .label.checked {

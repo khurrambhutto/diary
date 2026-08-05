@@ -50,7 +50,7 @@
 <style>
   .row {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     cursor: pointer;
     user-select: none;
     gap: 0.625rem;
@@ -80,6 +80,7 @@
     justify-content: center;
     width: 18px;
     height: 18px;
+    margin-top: 0.1rem;
     border-radius: 50%;
     outline: none;
     -webkit-appearance: none;
@@ -127,9 +128,7 @@
     transition: color 150ms ease, text-decoration 150ms ease;
     min-width: 0;
     flex: 1 1 auto;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
   }
   .row.completing .text {
     color: var(--ink-soft);

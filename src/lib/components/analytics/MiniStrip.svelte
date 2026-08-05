@@ -24,7 +24,7 @@
 
 <svg
   viewBox="0 0 {totalWidth} {height}"
-  style="width: 100%; height: auto;"
+  style="width: 100%; max-width: calc(100% - 1.5rem); height: auto; margin: 0 auto;"
   role="img"
   aria-label="Activity mini-strip"
 >

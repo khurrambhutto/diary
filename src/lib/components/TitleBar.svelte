@@ -116,16 +116,18 @@
   .mac .light.minimize:hover::after { content: "−"; }
   .mac .light.maximize:hover::after { content: "+"; }
 
-  /* Windows/Linux: muted dots, color on hover */
+  /* Windows/Linux: muted dots, with traffic-light colors on hover. */
   .win .light {
     background-color: var(--ink-faint);
   }
   .win .light.close:hover {
-    background-color: #e81123;
+    background-color: #ff5f57;
   }
-  .win .light.minimize:hover,
+  .win .light.minimize:hover {
+    background-color: #ffbd2e;
+  }
   .win .light.maximize:hover {
-    background-color: var(--ink-soft);
+    background-color: #28c840;
   }
 
   .brand {
