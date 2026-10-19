@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Diary
+Comment=A quiet notebook for daily writing and small habits
+Exec=diary
+Icon=com.khurram.diary
+Terminal=false
+Categories=Office;
+StartupWMClass=com.khurram.diary

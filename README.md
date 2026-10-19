@@ -1,101 +1,70 @@
 # Diary
 
-A minimal, cozy desktop app for daily journaling and habit tracking.  
-Single white background. Warm, calm, book-like — not a productivity dashboard.
+A native desktop notebook for daily writing and small habits, built in Rust with [GPUI Kit](https://gpui-kit.com/).
 
-<picture>
-  <source media="(prefers-color-scheme: light)" srcset="new_light.png">
-  <img src="new_dark.png" alt="Diary app — Today view showing journal editor, habit list, and to-do section" width="600">
-</picture>
+- Write today's plain-text journal, with wrapping, undo, selection, and copy/paste.
+- Browse past entries through Yesterday or the calendar. Past notes are read-only.
+- Track daily habits, rename or delete them, and keep a task backlog.
+- Reflect on writing streaks, a year of writing activity, and habit completion.
+- Follow the system's light or dark appearance. Fonts and icons are bundled for offline use.
 
-## Features
+The design comes from `Layout adjustment for maximized window-handoff.zip`. At 720px, habits and tasks sit above the note. From 1100px, they stack in a 300px sidebar beside the note. The minimum window is 720×500.
 
-- **Today** — write today's journal entry on the left 70%, tick off daily habits on the right 30%.
-- **Monthly** (Phase 2 stub) — placeholder for the future calendar + analytics view.
-- **To-do** — quick tasks for today; swipe-style completion animation.
-- **Offline-first** — bundled fonts, local JSON store via Tauri plugin, no network required.
-- **Plain-text journal** — CodeMirror 6 with undo history, search, and line wrapping. Future-proofed for vim motions and bullet lists.
-- **Dark / Light mode** — follows the OS preference automatically.
-- **macOS traffic-light window controls** (or Windows/Linux dots) with drag regions for a native feel.
+## Run
 
-## Screenshots
-
-| Light mode                                        | Dark mode                                       |
-| ------------------------------------------------- | ----------------------------------------------- |
-| ![Light mode](new_light.png)                       | ![Dark mode](new_dark.png)                      |
-
-## Tech stack
-
-| Concern            | Choice                                                   |
-| ------------------ | -------------------------------------------------------- |
-| Runtime / shell    | Tauri v2                                                 |
-| Frontend           | SvelteKit 2 + Svelte 5 (runes mode) + TypeScript (strict) |
-| Adapter            | `@sveltejs/adapter-static` — SPA mode                    |
-| Package manager    | bun                                                      |
-| Styling            | Tailwind CSS v4                                          |
-| Editor             | CodeMirror 6 — plain text                                |
-| Font (journal)     | Newsreader (serif) 17px / 1.7                            |
-| Font (UI)          | Atkinson Hyperlegible (sans)                             |
-| State              | Svelte 5 runes + component stores                        |
-| Persistence        | `@tauri-apps/plugin-store` (JSON file)                   |
-| Dates              | date-fns                                                 |
-| Icons              | lucide-svelte                                            |
-
-## Getting started
+Install a current stable Rust toolchain. On Debian/Ubuntu, install GPUI's native build dependencies:
 
 ```bash
-bun install
-bun run tauri dev
+sudo apt-get install build-essential clang cmake pkg-config libasound2-dev \
+  libfontconfig1-dev libfreetype-dev libxkbcommon-dev libxkbcommon-x11-dev \
+  libwayland-dev libx11-xcb-dev libxcb1-dev libxcb-composite0-dev \
+  libxcb-damage0-dev libxcb-dpms0-dev libxcb-present-dev libxcb-randr0-dev \
+  libxcb-render0-dev libxcb-res0-dev libxcb-shape0-dev libxcb-sync-dev \
+  libxcb-xfixes0-dev libxcb-xinput-dev libxcb-xkb-dev libvulkan-dev
+cargo run --locked
 ```
 
-### Common commands
+Linux needs a working Vulkan graphics driver. macOS needs Xcode command line tools; Windows needs the Visual Studio C++ build tools and Windows SDK.
 
 ```bash
-bun run dev           # Vite dev server (port 1420)
-bun run tauri dev     # Full desktop dev shell
-bun run build         # Production web build → ./build
-bun run tauri build   # Build + bundle the desktop app
-bun run check         # svelte-kit sync + svelte-check
+cargo fmt --check
+cargo check --locked
+cargo test --locked
+cargo clippy --all-targets --locked -- -D warnings
+cargo build --release --locked
 ```
 
-## Project layout
+GPUI is a large first build. `target/release/diary` is the Linux/macOS executable; Windows builds `diary.exe`. The tag release workflow packages a Linux archive, a macOS app, and a Windows ZIP. Packaging on macOS and Windows is verified by CI, not by a Linux build.
 
-```
-src/
-  routes/
-    +page.svelte              # Today view (journal + sidebar)
-    monthly/+page.svelte      # Monthly view stub
-  lib/
-    components/
-      Editor.svelte           # CodeMirror wrapper
-      HabitList.svelte        # Habit checkboxes
-      HabitRow.svelte         # Single habit row
-      HabitAddForm.svelte     # Add new habit
-      TodoList.svelte         # To-do list
-      TodoRow.svelte          # Single to-do item
-      ViewSwitch.svelte       # Today / Monthly pill toggle
-      TitleBar.svelte         # Custom window controls
-    editor/
-      extensions.ts           # CM6 extension preset
-      theme.ts                # CM6 custom theme
-    stores/
-      journal.svelte.ts       # Journal text (date-keyed)
-      habits.svelte.ts        # Habit definitions + checks
-      todos.svelte.ts         # To-do items
-      view.svelte.ts          # Active view ('today' | 'monthly')
-src-tauri/
-  src/lib.rs                  # Tauri commands (empty in Phase 1)
-  tauri.conf.json             # Window, build, bundle config
+## Data
+
+Diary retains the previous app's `com.khurram.diary/.diary-store.json` location under the OS data directory. Existing journal, habit, and task data loads directly, including older date-keyed tasks. Before the first save, Diary copies the original file to `.diary-store.pre-gpui.json` in the same directory.
+
+Edits update memory immediately. A single background writer waits 400ms after the last change, writes a temporary file, then atomically replaces the store. Closing flushes pending writes. Load and save errors appear in the app; a damaged file is never silently replaced with an empty notebook.
+
+For a separate notebook during development:
+
+```bash
+DIARY_DATA_DIR=/tmp/diary-demo cargo run --locked
 ```
 
-## Design system
+Don't run the old Tauri app and this version against the same notebook simultaneously. Both applications save the entire file.
 
-- **Paper** — solid `#ffffff` (light) / `#1e1e1e` (dark), no noise, no gradients.
-- **Ink** — Apple-style `#1d1d1f` / `#f5f5f7` with soft and faint variants.
-- **Accent** — muted purple (`#8b7dbe` / `#a89bd9`) used only on the view toggle and checked boxes.
-- **Typographic rhythm** — Newsreader for the journal body, Atkinson Hyperlegible for UI labels.
-- **Motion** — spring-eased micro-interactions on checkboxes, to-do circles, page transitions.
+## Shortcuts
 
-## License
+| Action | macOS | Linux / Windows |
+| --- | --- | --- |
+| Today | Cmd+T | Ctrl+T |
+| Previous / next day | Cmd+[ / Cmd+] | Ctrl+[ / Ctrl+] |
+| Save now | Cmd+S | Ctrl+S |
+| Dismiss calendar/menu or cancel rename | Escape | Escape |
 
-MIT
+Enter adds a habit or task and commits a rename. Tab moves between controls. The view pill accepts left/right arrows. Completed tasks remain briefly available to undo by clicking their checkbox again.
+
+## Updates
+
+Settings checks the public GitHub releases API only when requested. A newer version opens its release page for manual download. This version does not replace its own executable or use the former Tauri updater.
+
+## Code
+
+`src/main.rs` starts the app. `app.rs` owns UI state, `model.rs` owns data and statistics, and `storage.rs` owns disk writes. `inputs.rs` and `interactions.rs` connect editing and navigation to that state. Each screen lives in `src/ui/`; shared colors are in `theme.rs`. Fonts and SVG icons live in `assets/` with the font licenses.
