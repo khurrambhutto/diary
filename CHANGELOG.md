@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.0 - 2026-10-19
+
+- Replace Tauri and Svelte with native Rust and GPUI Kit
+- Apply the design handoff in light and dark mode, with a sidebar at wide window sizes
+- Keep existing journal, habit, and task data, with a backup before the first GPUI save
+- Add atomic background autosave and flush pending changes on close
+- Keep past notes read-only and calculate analytics from saved activity
+- Check for updates on request and open the release page for manual download
+- Build native release archives for Linux, macOS, and Windows
+
 ## 0.1.5 — 2026-08-05
 
 - Todo and habit labels wrap to a second line instead of overflowing
