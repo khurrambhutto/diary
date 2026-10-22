@@ -6,6 +6,26 @@ use chrono::Days;
 use gpui_kit::*;
 use std::time::{Duration, Instant};
 
+actions!(diary, [GoToToday, PreviousDay, NextDay, SaveNow, Dismiss]);
+
+pub fn init(cx: &mut App) {
+  let command = if cfg!(target_os = "macos") {
+    "cmd"
+  } else {
+    "ctrl"
+  };
+  // Match the input's own context too, so its indent bindings cannot consume day navigation.
+  for context in ["Diary", "Diary > Input"] {
+    cx.bind_keys([
+      KeyBinding::new(&format!("{command}-t"), GoToToday, Some(context)),
+      KeyBinding::new(&format!("{command}-["), PreviousDay, Some(context)),
+      KeyBinding::new(&format!("{command}-]"), NextDay, Some(context)),
+      KeyBinding::new(&format!("{command}-s"), SaveNow, Some(context)),
+      KeyBinding::new("escape", Dismiss, Some(context)),
+    ]);
+  }
+}
+
 impl Diary {
   pub fn segment(&self) -> Option<usize> {
     match self.view {
@@ -105,43 +125,31 @@ impl Diary {
     }
     cx.notify();
   }
-  pub fn keyboard(&mut self, event: &KeyDownEvent, window: &mut Window, cx: &mut Context<Self>) {
-    let modifiers = event.keystroke.modifiers;
-    let key = event.keystroke.key.as_str();
-    if key == "escape" {
-      self.calendar = None;
-      self.menu = None;
-      self.renaming = None;
-      self
-        .habit_input
-        .update(cx, |s, cx| s.set_value("", window, cx));
-      self
-        .todo_input
-        .update(cx, |s, cx| s.set_value("", window, cx));
-      self.focus.focus(window, cx);
-      cx.notify();
-      return;
-    }
-    let command = if cfg!(target_os = "macos") {
-      modifiers.platform
-    } else {
-      modifiers.control
-    };
-    if command {
-      match key {
-        "t" => self.select_day(self.current_day, window, cx),
-        "[" => self.select_day(self.date - Days::new(1), window, cx),
-        "]" => self.select_day(self.date + Days::new(1), window, cx),
-        "s" => {
-          if let Err(e) = self.flush() {
-            self.save_error = Some(e);
-            cx.notify();
-          }
-        }
-        _ => return,
-      }
-      cx.stop_propagation();
-    }
+  pub fn go_to_today(&mut self, _: &GoToToday, window: &mut Window, cx: &mut Context<Self>) {
+    self.select_day(self.current_day, window, cx);
+  }
+  pub fn previous_day(&mut self, _: &PreviousDay, window: &mut Window, cx: &mut Context<Self>) {
+    self.select_day(self.date - Days::new(1), window, cx);
+  }
+  pub fn next_day(&mut self, _: &NextDay, window: &mut Window, cx: &mut Context<Self>) {
+    self.select_day(self.date + Days::new(1), window, cx);
+  }
+  pub fn save_now(&mut self, _: &SaveNow, _: &mut Window, cx: &mut Context<Self>) {
+    self.save_error = self.flush().err();
+    cx.notify();
+  }
+  pub fn dismiss(&mut self, _: &Dismiss, window: &mut Window, cx: &mut Context<Self>) {
+    self.calendar = None;
+    self.menu = None;
+    self.renaming = None;
+    self
+      .habit_input
+      .update(cx, |s, cx| s.set_value("", window, cx));
+    self
+      .todo_input
+      .update(cx, |s, cx| s.set_value("", window, cx));
+    self.focus.focus(window, cx);
+    cx.notify();
   }
   pub fn close(&mut self, window: &mut Window, cx: &mut Context<Self>) {
     match self.flush() {

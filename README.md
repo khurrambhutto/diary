@@ -65,6 +65,18 @@ Enter adds a habit or task and commits a rename. Tab moves between controls. The
 
 Settings checks the public GitHub releases API only when requested. A newer version opens its release page for manual download. This version does not replace its own executable or use the former Tauri updater.
 
+### Upgrade from 0.1.x
+
+Download 0.2.0 from the [GitHub release page](https://github.com/khurrambhutto/diary/releases/tag/v0.2.0) and install it manually. The former Tauri updater cannot install the native Rust app. Quit the old app before opening the new one. Diary reads the same notebook and creates `.diary-store.pre-gpui.json` before its first save.
+
+Choose the Linux x86-64 archive, the macOS Apple Silicon or Intel app archive, or the Windows x86-64 ZIP. Extract the archive before running the app. On Linux, install the runtime libraries listed above and put `diary` on your `PATH` if using the included desktop file. On macOS, move `Diary.app` to Applications. The macOS app uses ad-hoc signing and is not notarized. On Windows, run `diary.exe` from the extracted folder.
+
+Release downloads include `SHA256SUMS` for checking archive integrity.
+
+### Publishing a release
+
+Set the version in `Cargo.toml` and `Cargo.lock`, update the changelog, then push a matching `v` tag. The release workflow checks the tag against the package version, runs tests and Clippy, and builds Linux, macOS Apple Silicon, macOS Intel, and Windows archives. It creates a draft release with checksums. Verify the downloads and publish the draft when ready.
+
 ## Code
 
 `src/main.rs` starts the app. `app.rs` owns UI state, `model.rs` owns data and statistics, and `storage.rs` owns disk writes. `inputs.rs` and `interactions.rs` connect editing and navigation to that state. Each screen lives in `src/ui/`; shared colors are in `theme.rs`. Fonts and SVG icons live in `assets/` with the font licenses.

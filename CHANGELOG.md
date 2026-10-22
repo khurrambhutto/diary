@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.2.0 - 2026-10-19
+## 0.2.0 - 2026-10-22
 
 - Replace Tauri and Svelte with native Rust and GPUI Kit
 - Apply the design handoff in light and dark mode, with a sidebar at wide window sizes
@@ -9,6 +9,10 @@
 - Keep past notes read-only and calculate analytics from saved activity
 - Check for updates on request and open the release page for manual download
 - Build native release archives for Linux, macOS, and Windows
+- Validate update responses and cover update checks with offline HTTP tests
+- Include download checksums and instructions for upgrading from the Tauri app
+- Save task completions when closing during their undo animation
+- Keep day navigation shortcuts working while the journal editor has focus
 
 ## 0.1.5 — 2026-08-05
 

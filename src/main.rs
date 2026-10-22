@@ -17,6 +17,7 @@ fn main() {
     .with_assets(assets::Assets)
     .run(|cx| {
       gpui_kit::base::init(cx);
+      interactions::init(cx);
       gpui_kit::base::Root::register_plugin(cx, window_frame::WindowFrame::new);
       assets::register_fonts(cx).expect("Cannot load Diary's bundled fonts");
       cx.on_window_closed(|cx, _| {

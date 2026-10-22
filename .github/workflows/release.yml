@@ -6,7 +6,25 @@ on:
 permissions:
   contents: write
 jobs:
+  verify-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify release version
+        env:
+          RELEASE_REF: ${{ github.ref }}
+        run: |
+          python3 - <<'PY'
+          import os, tomllib
+          with open('Cargo.toml', 'rb') as file:
+              version = tomllib.load(file)['package']['version']
+          ref = os.environ['RELEASE_REF']
+          if ref.startswith('refs/tags/'):
+              assert ref == f'refs/tags/v{version}', f'Tag {ref} does not match package version {version}'
+          print(f'Building Diary {version}')
+          PY
   build:
+    needs: verify-version
     strategy:
       fail-fast: false
       matrix:
@@ -47,6 +65,7 @@ jobs:
           cp target/${{ matrix.target }}/release/diary packaging/diary.desktop artifact/
           cp packaging/icons/icon.png artifact/com.khurram.diary.png
           cp README.md artifact/
+          cp assets/fonts/OFL-*.txt artifact/
           tar -czf diary-${{ matrix.target }}.tar.gz -C artifact .
       - name: Package macOS
         if: runner.os == 'macOS'
@@ -58,6 +77,7 @@ jobs:
           /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" Diary.app/Contents/Info.plist
           /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $VERSION" Diary.app/Contents/Info.plist
           cp packaging/icons/icon.icns Diary.app/Contents/Resources/
+          cp assets/fonts/OFL-*.txt Diary.app/Contents/Resources/
           codesign --force --deep --sign - Diary.app
           tar -czf diary-${{ matrix.target }}.app.tar.gz Diary.app
       - name: Package Windows
@@ -67,6 +87,7 @@ jobs:
           New-Item -ItemType Directory -Force artifact
           Copy-Item target/${{ matrix.target }}/release/diary.exe artifact/
           Copy-Item README.md artifact/
+          Copy-Item assets/fonts/OFL-*.txt artifact/
           Compress-Archive -Path artifact/* -DestinationPath diary-${{ matrix.target }}.zip
       - uses: actions/upload-artifact@v4
         with:
@@ -83,9 +104,30 @@ jobs:
         with:
           pattern: diary-*
           merge-multiple: true
+      - name: Check archives and generate checksums
+        run: |
+          python3 - <<'PY'
+          import hashlib
+          from pathlib import Path
+          expected = [
+              'diary-x86_64-unknown-linux-gnu.tar.gz',
+              'diary-aarch64-apple-darwin.app.tar.gz',
+              'diary-x86_64-apple-darwin.app.tar.gz',
+              'diary-x86_64-pc-windows-msvc.zip',
+          ]
+          with open('SHA256SUMS', 'w') as sums:
+              for name in expected:
+                  path = Path(name)
+                  assert path.is_file() and path.stat().st_size > 0, f'Missing or empty archive: {name}'
+                  with path.open('rb') as archive:
+                      digest = hashlib.file_digest(archive, 'sha256').hexdigest()
+                  sums.write(f'{digest}  {name}\n')
+          PY
       - uses: softprops/action-gh-release@v2
         with:
+          draft: true
           generate_release_notes: true
           files: |
             diary-*.tar.gz
             diary-*.zip
+            SHA256SUMS
