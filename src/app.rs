@@ -127,7 +127,9 @@ impl Diary {
       }
     }));
     app.subscriptions.push(cx.on_app_quit(|this, _| {
-      let _ = this.flush();
+      if let Err(error) = this.flush() {
+        eprintln!("{error}");
+      }
       async {}
     }));
     let weak = cx.weak_entity();
@@ -153,7 +155,17 @@ impl Diary {
       storage.queue(&self.data);
     }
   }
-  pub fn flush(&self) -> Result<(), String> {
+  pub fn flush(&mut self) -> Result<(), String> {
+    // A close or explicit save must include task checkmarks still animating.
+    if !self.completed.is_empty() {
+      self
+        .data
+        .todos
+        .retain(|todo| !self.completed.contains(&todo.id));
+      self.completed.clear();
+      self.completion_tasks.clear();
+      self.persist();
+    }
     self.storage.as_ref().map(Storage::flush).unwrap_or(Ok(()))
   }
   pub fn select_day(&mut self, date: NaiveDate, window: &mut Window, cx: &mut Context<Self>) {
